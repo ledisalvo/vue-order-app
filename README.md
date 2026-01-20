@@ -193,7 +193,7 @@ npm run build
 ## 👨‍💻 Desarrollador
 
 **Tu Nombre**
-- GitHub: [@tu-usuario](https://github.com/ledisalvo)
-- LinkedIn: [Tu Perfil](https://linkedin.com/in/leonardo-di-salvo)
+- GitHub: [@ledisalvo](https://github.com/ledisalvo)
+- LinkedIn: [Leonardo Di Salvo](https://linkedin.com/in/leonardo-di-salvo)
 - Email: ledisalvo@gmail.com
 ---
