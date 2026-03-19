@@ -5,12 +5,14 @@
       <RouterView />
     </main>
     <AppFooter />
+    <AppToast />
   </div>
 </template>
 
 <script setup>
 import AppHeader from '@/components/shop/AppHeader.vue'
 import AppFooter from '@/components/shop/AppFooter.vue'
+import AppToast from '@/components/shop/AppToast.vue'
 </script>
 
 <style>
