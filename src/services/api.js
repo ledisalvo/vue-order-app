@@ -92,6 +92,19 @@ export const orderService = {
   },
 }
 
+// TODO(fase-3): conectar cuando Generic-Ecommerce#28 esté listo
+export const catalogService = {
+  async getProducts(params = {}) {
+    // params: { page, pageSize, category, priceMin, priceMax, inStock }
+    const { data } = await api.get('/products', { params })
+    return data // { items, totalCount, page, pageSize, totalPages }
+  },
+  async getCategories() {
+    const { data } = await api.get('/categories')
+    return data // [{ slug, name, count }]
+  },
+}
+
 export const productService = {
   async getAll() {
     const { data } = await api.get('/products')
