@@ -100,26 +100,28 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/).
 - Activación de API real de pedidos → pendiente endpoint `/my/orders` en backend
 - Activación de API real de direcciones → pendiente endpoint `/my/addresses` en backend
 
-### Fase 6 — Backoffice ✅ (parcial)
+### Fase 6 — Backoffice ✅
 
 #### Added
 - **AdminProductsView** `/admin/productos`: tabla con nombre, categoría, precio, stock (alertas bajo stock/agotado), estado; filtro por nombre y estado; acciones editar/activar-desactivar/eliminar — issue #16
 - **AdminProductFormView** `/admin/productos/nuevo` y `/:id/editar`: formulario completo con datos básicos, slug auto-generado, imágenes con upload (mock Cloudinary), gestión de atributos con chips y generación automática de variantes por producto cartesiano — issue #16
 - **Variantes**: tabla editable de combinaciones con SKU, precio override, stock y toggle activo/inactivo — issue #16
-- Rutas admin en router: `/admin/productos`, `/admin/productos/nuevo`, `/admin/productos/:id/editar` — issue #16
 - **adminProductService** conectado al backend real; normalización de campos `isActive`/`stockQuantity` — issue #16
 - **AdminOrdersView** `/admin/pedidos`: tabla con filtros por estado, nombre/# y rango de fechas; badges de estado de pedido y pago — issue #17
 - **AdminOrderDetailView** `/admin/pedidos/:id`: detalle completo con items, snapshots de envío/facturación, totales, referencia de pago MP — issue #17
 - **Cambio de estado** con transiciones definidas (pending → confirmed → shipped → delivered / cancelled desde cualquier estado); campo de número de seguimiento al pasar a "Enviado" — issue #17
 - `adminOrderService`: `getAll`, `getById`, `updateStatus` en `api.js` con `USE_MOCK = true` — issue #17
+- **AdminConfigView** `/admin/configuracion`: vista con 4 tabs — issue #18
+  - **Categorías**: CRUD con nombre, slug auto-generado, orden y toggle activo/inactivo
+  - **Promociones**: CRUD de promociones auto-apply (% o monto fijo), vigencia por fechas, monto mínimo de carrito, toggle activo
+  - **Zonas de envío**: CRUD con selección de provincias por checkbox, costo base, costo/kg y umbral de envío gratis
+  - **Punto de retiro**: formulario de configuración del local (nombre, dirección, horario, teléfono, notas, toggle habilitado)
+- `adminConfigService` en `api.js` con todos los endpoints de categorías, promociones, zonas y puntos de retiro — issue #18
 
 #### Blocked
 - Upload real de imágenes → pendiente integración Cloudinary (Generic-Ecommerce#1)
 - API real de pedidos admin → pendiente endpoint `/admin/orders` en backend
-
-### Fase 6 — Backoffice (continuación)
-
-- [ ] **Categorías, promociones** y configuración de envío — issue #18
+- Activación de API real de config → pendientes endpoints `/admin/config` en backend
 
 ---
 
