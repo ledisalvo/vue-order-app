@@ -82,20 +82,23 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/).
 - [ ] **MercadoPago Checkout Pro** + pantalla de resultado (approved/pending/failure) — issue #13
 - [ ] Activación de carrito backend → bloqueado por [Generic-Ecommerce#27](https://github.com/ledisalvo/Generic-Ecommerce/issues/27) (MP)
 
-### Fase 5 — Mi cuenta ✅ (parcial)
+### Fase 5 — Mi cuenta ✅
 
 #### Added
 - **MyOrdersView** `/mi-cuenta/pedidos`: lista de pedidos con skeleton, empty state, badge de estado y thumbnail del primer producto — issue #14
 - **OrderDetailView** `/mi-cuenta/pedidos/:id`: items con snapshot de variante, dirección de envío, facturación, notas, totales — issue #14
 - **Timeline de estados**: Pendiente de pago → Confirmado → Enviado → Entregado con dots animados — issue #14
 - **myOrdersService**: `getOrders()` y `getOrderById(id)` en `api.js` con mock completo (`USE_MOCK = true`) — issue #14
+- **MyAddressesView** `/mi-cuenta/direcciones`: CRUD completo de direcciones con alias, nombre, calle, ciudad, provincia, CP y teléfono — issue #15
+- Dirección predeterminada marcada visualmente y acción "Predeterminar" — issue #15
+- Formulario inline con validación, transición slide y toggle "Establecer como predeterminada" — issue #15
+- Confirmación de eliminación con overlay modal — issue #15
+- Skeleton loading y empty state con CTA — issue #15
+- **addressesService**: `getAll`, `create`, `update`, `remove`, `setDefault` en `api.js` con mock (`USE_MOCK = true`) — issue #15
 
 #### Blocked
-- Activación de API real → pendiente endpoint `/my/orders` en backend
-
-### Fase 5 — Mi cuenta (continuación)
-
-- [ ] **Gestión de direcciones** — issue #15
+- Activación de API real de pedidos → pendiente endpoint `/my/orders` en backend
+- Activación de API real de direcciones → pendiente endpoint `/my/addresses` en backend
 
 ### Fase 6 — Backoffice
 
