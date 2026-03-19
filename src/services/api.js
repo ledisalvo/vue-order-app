@@ -92,6 +92,26 @@ export const orderService = {
   },
 }
 
+// TODO(fase-3): conectar cuando el backend exponga GET /products/:slug con variantes
+export const productDetailService = {
+  async getBySlug(slug) {
+    const { data } = await api.get(`/products/${slug}`)
+    return data // { id, slug, name, category, description, price, originalPrice, images, attributes, variants }
+  },
+}
+
+// TODO(fase-3): conectar cuando el backend exponga POST /cart/items
+export const cartApiService = {
+  async addItem(variantId, quantity) {
+    const { data } = await api.post('/cart/items', { variantId, quantity })
+    return data // { cartItem }
+  },
+  async getCart() {
+    const { data } = await api.get('/cart')
+    return data // { items }
+  },
+}
+
 // TODO(fase-3): conectar cuando Generic-Ecommerce#28 esté listo
 export const catalogService = {
   async getProducts(params = {}) {
