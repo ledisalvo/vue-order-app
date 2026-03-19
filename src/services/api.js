@@ -1,106 +1,114 @@
-import axios from 'axios';
+import axios from 'axios'
 
-const API_BASE_URL = 'https://localhost:7274/api'; // Ajustar según tu configuración
+const API_BASE_URL = 'https://localhost:7274/api'
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+  headers: { 'Content-Type': 'application/json' },
+})
 
-// ⭐ Interceptor para asegurar que los GUIDs se mantengan como strings
+// --- Interceptor request: adjunta JWT si existe ---
+api.interceptors.request.use((config) => {
+  const raw = localStorage.getItem('auth')
+  if (raw) {
+    try {
+      const { token } = JSON.parse(raw)
+      if (token) config.headers.Authorization = `Bearer ${token}`
+    } catch {
+      // token malformado — ignorar
+    }
+  }
+  return config
+})
+
+// --- Interceptor response: unwrap envelope + manejo de 401 ---
 api.interceptors.response.use(
   (response) => {
-    console.log('Raw response data:', response.data);
-
-    // Si la respuesta tiene la estructura { success, value, errors }
-    if (response.data && response.data.hasOwnProperty('success')) {
+    // API devuelve { success, value, errors }
+    if (Object.prototype.hasOwnProperty.call(response.data, 'success')) {
       if (response.data.success) {
-        response.data = response.data.value;
+        response.data = response.data.value
       } else {
-        throw new Error(response.data.errors.join(', '));
+        throw new Error(response.data.errors?.join(', ') ?? 'Error desconocido')
       }
     }
-
-    console.log('Processed response data:', response.data);
-    return response;
+    return response
   },
   (error) => {
-    console.error('API Error:', error.response?.data || error);
-    return Promise.reject(error);
-  }
-);
+    if (error.response?.status === 401) {
+      // Sesión expirada: limpiar auth y guardar ruta actual en sessionStorage
+      localStorage.removeItem('auth')
+      const redirect = window.location.pathname + window.location.search
+      if (redirect !== '/login') {
+        sessionStorage.setItem('auth_redirect', redirect)
+      }
+      window.location.href = '/login'
+    }
+    return Promise.reject(error)
+  },
+)
 
-// api.interceptors.response.use(
-//   (response) => {
-//     // Si la respuesta tiene la estructura { success, value, errors }
-//     if (response.data && response.data.hasOwnProperty('success')) {
-//       // Si fue exitoso, devolver el value
-//       if (response.data.success) {
-//         response.data = response.data.value;
-//       } else {
-//         // Si falló, lanzar error con los mensajes
-//         throw new Error(response.data.errors.join(', '));
-//       }
-//     }
-//     return response;
-//   },
-//   (error) => {
-//     return Promise.reject(error);
-//   }
-// );
+// ─── Servicios ──────────────────────────────────────────────────
+
+// TODO(fase-2): conectar cuando Generic-Ecommerce#26 esté listo
+export const authService = {
+  async login(email, password) {
+    const { data } = await api.post('/auth/login', { email, password })
+    return data // { token, user }
+  },
+  async register(name, email, password) {
+    const { data } = await api.post('/auth/register', { name, email, password })
+    return data // { token, user }
+  },
+}
 
 export const customerService = {
   async create(customer) {
-    const response = await api.post('/customers', customer);
-    return response.data;
+    const { data } = await api.post('/customers', customer)
+    return data
   },
   async getById(id) {
-    const response = await api.get(`/customers/${id}`);
-    return response.data;
+    const { data } = await api.get(`/customers/${id}`)
+    return data
   },
   async getOrdersByCustomerId(customerId) {
-    const response = await api.get(`/customers/${customerId}/orders`);
-    return response.data;
+    const { data } = await api.get(`/customers/${customerId}/orders`)
+    return data
   },
   async getCustomers() {
-    const response = await api.get('/customers');
-    return response.data;
+    const { data } = await api.get('/customers')
+    return data
   },
-};
+}
 
 export const orderService = {
   async create(orderData) {
-    // Verifica qué formato espera tu API
-    console.log('Datos a enviar:', orderData);
-
-    const response = await api.post('/orders', orderData);
-    return response.data;
+    const { data } = await api.post('/orders', orderData)
+    return data
   },
   async updateStatus(orderId, status) {
-    const response = await api.put(`/orders/${orderId}/status`, { status });
-    return response.data;
+    const { data } = await api.put(`/orders/${orderId}/status`, { status })
+    return data
   },
-};
+}
 
 export const productService = {
   async getAll() {
-    const response = await api.get('/products');
-    return response.data;
+    const { data } = await api.get('/products')
+    return data
   },
   async create(product) {
-    const response = await api.post('/products', product);
-    return response.data;
+    const { data } = await api.post('/products', product)
+    return data
   },
   async update(id, product) {
-    const response = await api.put(`/products/${id}`, product);
-    return response.data;
+    const { data } = await api.put(`/products/${id}`, product)
+    return data
   },
   async delete(id) {
-    const response = await api.delete(`/products/${id}`);
-    return response.data;
+    const { data } = await api.delete(`/products/${id}`)
+    return data
   },
-};
+}
 
-export default api;
+export default api
