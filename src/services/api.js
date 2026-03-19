@@ -100,15 +100,23 @@ export const productDetailService = {
   },
 }
 
-// TODO(fase-3): conectar cuando el backend exponga POST /cart/items
+// TODO(fase-4): conectar cuando el backend exponga /cart
 export const cartApiService = {
-  async addItem(variantId, quantity) {
-    const { data } = await api.post('/cart/items', { variantId, quantity })
-    return data // { cartItem }
-  },
   async getCart() {
     const { data } = await api.get('/cart')
-    return data // { items }
+    return data // { items, promotions }
+  },
+  async addItem(productId, quantity) {
+    const { data } = await api.post('/cart/items', { productId, quantity })
+    return data // { items, promotions }
+  },
+  async updateItem(productId, quantity) {
+    const { data } = await api.put(`/cart/items/${productId}`, { quantity })
+    return data // { items, promotions }
+  },
+  async removeItem(productId) {
+    const { data } = await api.delete(`/cart/items/${productId}`)
+    return data // { items, promotions }
   },
 }
 
