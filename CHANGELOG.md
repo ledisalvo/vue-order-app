@@ -67,9 +67,19 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/).
 - [ ] **MercadoPago Checkout Pro** + pantalla de resultado (approved/pending/failure) — issue #13
 - [ ] Activación de carrito backend → bloqueado por [Generic-Ecommerce#27](https://github.com/ledisalvo/Generic-Ecommerce/issues/27) (MP)
 
-### Fase 5 — Mi cuenta
+### Fase 5 — Mi cuenta ✅ (parcial)
 
-- [ ] **Historial de pedidos** y detalle — issue #14
+#### Added
+- **MyOrdersView** `/mi-cuenta/pedidos`: lista de pedidos con skeleton, empty state, badge de estado y thumbnail del primer producto — issue #14
+- **OrderDetailView** `/mi-cuenta/pedidos/:id`: items con snapshot de variante, dirección de envío, facturación, notas, totales — issue #14
+- **Timeline de estados**: Pendiente de pago → Confirmado → Enviado → Entregado con dots animados — issue #14
+- **myOrdersService**: `getOrders()` y `getOrderById(id)` en `api.js` con mock completo (`USE_MOCK = true`) — issue #14
+
+#### Blocked
+- Activación de API real → pendiente endpoint `/my/orders` en backend
+
+### Fase 5 — Mi cuenta (continuación)
+
 - [ ] **Gestión de direcciones** — issue #15
 
 ### Fase 6 — Backoffice
