@@ -100,6 +100,22 @@ export const productDetailService = {
   },
 }
 
+// TODO(fase-4): conectar cuando el backend exponga estos endpoints
+export const checkoutService = {
+  async getAddresses() {
+    const { data } = await api.get('/addresses')
+    return data // [{ id, name, street, city, province, zip, phone, isDefault }]
+  },
+  async getShippingOptions(addressId, items) {
+    const { data } = await api.post('/shipping/options', { addressId, items })
+    return data // [{ id, name, price, estimatedDays }]
+  },
+  async createOrder(payload) {
+    const { data } = await api.post('/orders', payload)
+    return data // { orderId, initPoint (URL MercadoPago) }
+  },
+}
+
 // TODO(fase-4): conectar cuando el backend exponga /cart
 export const cartApiService = {
   async getCart() {
