@@ -38,11 +38,13 @@ const routes = [
     path: '/login',
     name: 'login',
     component: () => import('@/views/shop/LoginView.vue'),
+    meta: { guestOnly: true },
   },
   {
     path: '/registro',
     name: 'register',
     component: () => import('@/views/shop/RegisterView.vue'),
+    meta: { guestOnly: true },
   },
   {
     path: '/mi-cuenta/pedidos',
@@ -76,11 +78,14 @@ const router = createRouter({
 })
 
 router.beforeEach((to, _from) => {
-  if (!to.meta.requiresAuth) return true
-
   const authStore = useAuthStore()
-  if (!authStore.isAuthenticated) {
+
+  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     return { name: 'login', query: { redirect: to.fullPath } }
+  }
+
+  if (to.meta.guestOnly && authStore.isAuthenticated) {
+    return { name: 'catalog' }
   }
 })
 
