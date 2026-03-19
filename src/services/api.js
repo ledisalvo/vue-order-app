@@ -249,112 +249,20 @@ export const addressesService = {
   },
 }
 
-<<<<<<< HEAD
-// TODO(fase-6): conectar cuando el backend exponga /admin/products
-export const adminProductService = {
-  async getAll() {
-    const { data } = await api.get('/products')
-    // Normalizar campos del backend al formato que usan las vistas
-    return data.map(p => ({
-      ...p,
-      totalStock: p.stockQuantity,
-      active: p.isActive,
-    }))
+// TODO(fase-6): conectar cuando el backend exponga /admin/orders
+export const adminOrderService = {
+  async getAll(params = {}) {
+    const { data } = await api.get('/admin/orders', { params })
+    return data // [{ id, number, date, customer, total, status, paymentStatus, trackingNumber }]
   },
   async getById(id) {
-    const { data } = await api.get(`/products/${id}`)
-    return {
-      ...data,
-      stock: data.stockQuantity,
-      active: data.isActive,
-    }
-  },
-  async create(payload) {
-    const { data } = await api.post('/products', {
-      name: payload.name,
-      price: payload.price,
-      stockQuantity: payload.stock ?? 0,
-    })
+    const { data } = await api.get(`/admin/orders/${id}`)
     return data
   },
-  async update(id, payload) {
-    const { data } = await api.put(`/products/${id}`, {
-      name: payload.name,
-      price: payload.price,
-      stockQuantity: payload.stock ?? 0,
-      isActive: payload.active,
-    })
-    return data
-  },
-  async remove(id) {
-    await api.delete(`/products/${id}`)
-  },
-  async toggleActive(product, active) {
-    const { data } = await api.put(`/products/${product.id}`, {
-      name: product.name,
-      price: product.price,
-      stockQuantity: product.totalStock ?? 0,
-      isActive: active,
-    })
-    return data
-  },
-  // TODO(cloudinary): conectar upload cuando Generic-Ecommerce#1 esté resuelto
-  async uploadImage(file) {
-    const form = new FormData()
-    form.append('file', file)
-    const { data } = await api.post('/admin/images/upload', form, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    })
-    return data // { url, publicId }
-  },
-}
-
-// TODO(fase-5): conectar cuando el backend exponga /my/addresses
-export const addressesService = {
-  async getAll() {
-    const { data } = await api.get('/my/addresses')
-    return data // [{ id, alias, name, street, city, province, zip, phone, isDefault }]
-  },
-  async create(address) {
-    const { data } = await api.post('/my/addresses', address)
-    return data
-  },
-  async update(id, address) {
-    const { data } = await api.put(`/my/addresses/${id}`, address)
-    return data
-  },
-  async remove(id) {
-    await api.delete(`/my/addresses/${id}`)
-  },
-  async setDefault(id) {
-    const { data } = await api.patch(`/my/addresses/${id}/default`)
+  async updateStatus(id, status, trackingNumber = null) {
+    const { data } = await api.put(`/admin/orders/${id}/status`, { status, trackingNumber })
     return data
   },
 }
 
-// TODO(fase-5): conectar cuando el backend exponga /my/addresses
-export const addressesService = {
-  async getAll() {
-    const { data } = await api.get('/my/addresses')
-    return data // [{ id, alias, name, street, city, province, zip, phone, isDefault }]
-  },
-  async create(address) {
-    const { data } = await api.post('/my/addresses', address)
-    return data
-  },
-  async update(id, address) {
-    const { data } = await api.put(`/my/addresses/${id}`, address)
-    return data
-  },
-  async remove(id) {
-    await api.delete(`/my/addresses/${id}`)
-  },
-  async setDefault(id) {
-    const { data } = await api.patch(`/my/addresses/${id}/default`)
-    return data
-  },
-}
-
-=======
->>>>>>> 76df8dc (feat: conectar backoffice de productos al backend real (#16))
 export default api

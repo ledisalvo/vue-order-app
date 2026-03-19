@@ -88,6 +88,18 @@ const routes = [
     component: () => import('@/views/admin/AdminProductFormView.vue'),
     meta: { requiresAuth: true },
   },
+  {
+    path: '/admin/pedidos',
+    name: 'admin-orders',
+    component: () => import('@/views/admin/AdminOrdersView.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/admin/pedidos/:id',
+    name: 'admin-order-detail',
+    component: () => import('@/views/admin/AdminOrderDetailView.vue'),
+    meta: { requiresAuth: true },
+  },
 ]
 
 const router = createRouter({
