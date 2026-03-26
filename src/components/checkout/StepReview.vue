@@ -80,7 +80,7 @@
         <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>
         </svg>
-        {{ submitting ? 'Procesando...' : 'Ir a pagar' }}
+        {{ submitting ? 'Procesando...' : (isDemoMode ? 'Confirmar pedido' : 'Ir a pagar') }}
       </button>
     </div>
   </div>
@@ -90,13 +90,16 @@
 import { ref, computed } from 'vue'
 import { useCartStore } from '@/stores/cartStore'
 import { useCheckoutStore } from '@/stores/checkoutStore'
+import { useDemoOrdersStore } from '@/stores/demoOrdersStore'
 import { checkoutService } from '@/services/api'
+import { isDemoMode } from '@/config'
 
-const USE_MOCK = true
+const USE_MOCK = isDemoMode
 
 const emit = defineEmits(['back', 'go', 'paid'])
-const cartStore     = useCartStore()
-const checkoutStore = useCheckoutStore()
+const cartStore       = useCartStore()
+const checkoutStore   = useCheckoutStore()
+const demoOrdersStore = isDemoMode ? useDemoOrdersStore() : null
 
 const submitting = ref(false)
 const error      = ref(null)
@@ -111,11 +114,22 @@ async function handlePay() {
   try {
     if (USE_MOCK) {
       await new Promise(r => setTimeout(r, 800))
-      // Simula creación de orden → URL de MercadoPago
-      const mockOrderId   = 'ORD-' + Date.now()
-      const mockInitPoint = 'https://www.mercadopago.com.ar/checkout/v1/redirect?pref_id=mock_123'
-      checkoutStore.setOrderResult(mockOrderId, mockInitPoint)
-      emit('paid', mockInitPoint)
+      const orderId = 'ORD-' + Date.now()
+      demoOrdersStore.addOrder({
+        id:     orderId,
+        number: orderId,
+        date:   new Date().toISOString(),
+        status: 'confirmed',
+        total:  grandTotal.value,
+        items:  cartStore.items.map(i => ({ ...i })),
+        shippingAddress: checkoutStore.shippingAddress,
+        shippingOption:  checkoutStore.shippingOption,
+        needsInvoice:    checkoutStore.needsInvoice,
+        invoiceData:     checkoutStore.invoiceData,
+        notes:           checkoutStore.notes,
+      })
+      checkoutStore.setOrderResult(orderId, null)
+      emit('paid', null) // null indica que debe navegar internamente
     } else {
       const result = await checkoutService.createOrder({
         items:           cartStore.items,

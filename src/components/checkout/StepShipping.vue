@@ -113,9 +113,9 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { useCartStore } from '@/stores/cartStore'
 import { checkoutService } from '@/services/api'
+import { isDemoMode } from '@/config'
 
-// TODO(fase-4): cambiar a false cuando el backend exponga los endpoints
-const USE_MOCK = true
+const USE_MOCK = isDemoMode
 
 const cartStore = useCartStore()
 const emit = defineEmits(['next', 'back'])

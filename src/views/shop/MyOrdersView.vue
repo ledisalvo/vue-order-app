@@ -74,8 +74,11 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { myOrdersService } from '@/services/api'
+import { useDemoOrdersStore } from '@/stores/demoOrdersStore'
+import { isDemoMode } from '@/config'
 
-const USE_MOCK = true
+const USE_MOCK = isDemoMode
+const demoOrdersStore = isDemoMode ? useDemoOrdersStore() : null
 
 const loading = ref(true)
 const error   = ref(null)
@@ -121,7 +124,9 @@ async function load() {
   try {
     if (USE_MOCK) {
       await new Promise(r => setTimeout(r, 500))
-      orders.value = MOCK_ORDERS
+      // Pedidos reales del demo (más recientes primero) + mock estáticos de ejemplo
+      const demoOrders = [...demoOrdersStore.orders].reverse()
+      orders.value = [...demoOrders, ...MOCK_ORDERS]
     } else {
       orders.value = await myOrdersService.getOrders()
     }
