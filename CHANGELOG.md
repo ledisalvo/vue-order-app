@@ -100,9 +100,21 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/).
 - Activación de API real de pedidos → pendiente endpoint `/my/orders` en backend
 - Activación de API real de direcciones → pendiente endpoint `/my/addresses` en backend
 
-### Fase 6 — Backoffice
+### Fase 6 — Backoffice ✅ (parcial)
 
-- [ ] **CRUD de productos** con variantes e imágenes (Cloudinary) — issue #16
+#### Added
+- **AdminProductsView** `/admin/productos`: tabla con nombre, categoría, precio, stock (alertas bajo stock/agotado), estado; filtro por nombre y estado; acciones editar/activar-desactivar/eliminar — issue #16
+- **AdminProductFormView** `/admin/productos/nuevo` y `/:id/editar`: formulario completo con datos básicos, slug auto-generado, imágenes con upload (mock Cloudinary), gestión de atributos con chips y generación automática de variantes por producto cartesiano — issue #16
+- **Variantes**: tabla editable de combinaciones con SKU, precio override, stock y toggle activo/inactivo — issue #16
+- Rutas admin en router: `/admin/productos`, `/admin/productos/nuevo`, `/admin/productos/:id/editar` — issue #16
+- **adminProductService** en `api.js` con `USE_MOCK = true`; incluye stub de `uploadImage` para Cloudinary — issue #16
+
+#### Blocked
+- Upload real de imágenes → pendiente integración Cloudinary (Generic-Ecommerce#1)
+- API real de productos admin → pendiente backend
+
+### Fase 6 — Backoffice (continuación)
+
 - [ ] **Gestión de pedidos** y cambio de estado — issue #17
 - [ ] **Categorías, promociones** y configuración de envío — issue #18
 
