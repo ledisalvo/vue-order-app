@@ -180,4 +180,27 @@ export const myOrdersService = {
   },
 }
 
+// TODO(fase-5): conectar cuando el backend exponga /my/addresses
+export const addressesService = {
+  async getAll() {
+    const { data } = await api.get('/my/addresses')
+    return data // [{ id, alias, name, street, city, province, zip, phone, isDefault }]
+  },
+  async create(address) {
+    const { data } = await api.post('/my/addresses', address)
+    return data
+  },
+  async update(id, address) {
+    const { data } = await api.put(`/my/addresses/${id}`, address)
+    return data
+  },
+  async remove(id) {
+    await api.delete(`/my/addresses/${id}`)
+  },
+  async setDefault(id) {
+    const { data } = await api.patch(`/my/addresses/${id}/default`)
+    return data
+  },
+}
+
 export default api
