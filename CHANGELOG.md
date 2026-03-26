@@ -75,6 +75,17 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/).
 
 ---
 
+### Fase 6 — Backoffice dashboard ✅
+
+#### Added
+- **AdminView** `/admin`: métricas del día (pedidos, facturación, pendientes, stock agotado), alertas clicables, últimos 5 pedidos con estado, acceso rápido a todas las secciones — issue #33
+- **adminDashboardService**: `getSummary()` en `api.js` con `USE_MOCK = true` — issue #33
+
+#### Blocked
+- Métricas reales → pendiente endpoint `/admin/dashboard` en backend
+
+---
+
 ## Planificado
 
 ### Fase 4 — Checkout y pagos (continuación)

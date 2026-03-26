@@ -290,4 +290,12 @@ export const adminConfigService = {
   async updatePickupPoint(id, payload) { const { data } = await api.put(`/admin/pickup-points/${id}`, payload); return data },
 }
 
+// TODO(fase-6): conectar cuando el backend exponga /admin/dashboard
+export const adminDashboardService = {
+  async getSummary() {
+    const { data } = await api.get('/admin/dashboard')
+    return data // { ordersToday, revenueToday, pendingOrders, lowStockCount, outOfStockCount, recentOrders }
+  },
+}
+
 export default api
