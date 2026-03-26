@@ -100,6 +100,12 @@ const routes = [
     component: () => import('@/views/admin/AdminOrderDetailView.vue'),
     meta: { requiresAuth: true },
   },
+  {
+    path: '/admin/configuracion',
+    name: 'admin-config',
+    component: () => import('@/views/admin/AdminConfigView.vue'),
+    meta: { requiresAuth: true },
+  },
 ]
 
 const router = createRouter({

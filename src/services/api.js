@@ -265,4 +265,29 @@ export const adminOrderService = {
   },
 }
 
+// TODO(fase-6): conectar cuando el backend exponga /admin/config
+export const adminConfigService = {
+  // Categorías
+  async getCategories() { const { data } = await api.get('/admin/categories'); return data },
+  async createCategory(payload) { const { data } = await api.post('/admin/categories', payload); return data },
+  async updateCategory(id, payload) { const { data } = await api.put(`/admin/categories/${id}`, payload); return data },
+  async deleteCategory(id) { await api.delete(`/admin/categories/${id}`) },
+
+  // Promociones
+  async getPromotions() { const { data } = await api.get('/admin/promotions'); return data },
+  async createPromotion(payload) { const { data } = await api.post('/admin/promotions', payload); return data },
+  async updatePromotion(id, payload) { const { data } = await api.put(`/admin/promotions/${id}`, payload); return data },
+  async deletePromotion(id) { await api.delete(`/admin/promotions/${id}`) },
+
+  // Zonas de envío
+  async getShippingZones() { const { data } = await api.get('/admin/shipping-zones'); return data },
+  async createShippingZone(payload) { const { data } = await api.post('/admin/shipping-zones', payload); return data },
+  async updateShippingZone(id, payload) { const { data } = await api.put(`/admin/shipping-zones/${id}`, payload); return data },
+  async deleteShippingZone(id) { await api.delete(`/admin/shipping-zones/${id}`) },
+
+  // Puntos de retiro
+  async getPickupPoints() { const { data } = await api.get('/admin/pickup-points'); return data },
+  async updatePickupPoint(id, payload) { const { data } = await api.put(`/admin/pickup-points/${id}`, payload); return data },
+}
+
 export default api
