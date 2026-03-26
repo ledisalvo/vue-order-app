@@ -70,6 +70,24 @@ const routes = [
     component: () => import('@/views/admin/AdminView.vue'),
     meta: { requiresAuth: true },
   },
+  {
+    path: '/admin/productos',
+    name: 'admin-products',
+    component: () => import('@/views/admin/AdminProductsView.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/admin/productos/nuevo',
+    name: 'admin-product-new',
+    component: () => import('@/views/admin/AdminProductFormView.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/admin/productos/:id/editar',
+    name: 'admin-product-edit',
+    component: () => import('@/views/admin/AdminProductFormView.vue'),
+    meta: { requiresAuth: true },
+  },
 ]
 
 const router = createRouter({

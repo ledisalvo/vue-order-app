@@ -12,14 +12,14 @@ export const useAuthStore = defineStore(
 
     async function login(email, password) {
       const data = await authService.login(email, password)
-      token.value = data.token
-      user.value  = data.user
+      token.value = data.accessToken ?? data.token
+      user.value  = data.user ?? null
     }
 
     async function register(name, email, password) {
       const data = await authService.register(name, email, password)
-      token.value = data.token
-      user.value  = data.user
+      token.value = data.accessToken ?? data.token
+      user.value  = data.user ?? null
     }
 
     function logout() {
