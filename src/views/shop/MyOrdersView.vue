@@ -138,7 +138,8 @@ const STATUS_MAP = {
   pending_payment: { label: 'Pendiente de pago', cls: 'status-pending'  },
   confirmed:       { label: 'Confirmado',         cls: 'status-confirmed' },
   shipped:         { label: 'Enviado',             cls: 'status-shipped'  },
-  delivered:       { label: 'Entregado',           cls: 'status-delivered'},
+  delivered:       { label: 'Entregado',           cls: 'status-delivered' },
+  cancelled:       { label: 'Cancelado',           cls: 'status-cancelled' },
 }
 function statusLabel(s) { return STATUS_MAP[s]?.label ?? s }
 function statusClass(s)  { return STATUS_MAP[s]?.cls  ?? '' }
@@ -190,6 +191,7 @@ function formatPrice(n) {
 .status-confirmed { background: #dbeafe; color: #1e40af; }
 .status-shipped   { background: #e0f2fe; color: #0369a1; }
 .status-delivered { background: #dcfce7; color: #166534; }
+.status-cancelled { background: #fee2e2; color: #991b1b; }
 
 /* Skeleton */
 .skeleton { pointer-events: none; }

@@ -107,15 +107,18 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/).
 - **AdminProductFormView** `/admin/productos/nuevo` y `/:id/editar`: formulario completo con datos básicos, slug auto-generado, imágenes con upload (mock Cloudinary), gestión de atributos con chips y generación automática de variantes por producto cartesiano — issue #16
 - **Variantes**: tabla editable de combinaciones con SKU, precio override, stock y toggle activo/inactivo — issue #16
 - Rutas admin en router: `/admin/productos`, `/admin/productos/nuevo`, `/admin/productos/:id/editar` — issue #16
-- **adminProductService** en `api.js` con `USE_MOCK = true`; incluye stub de `uploadImage` para Cloudinary — issue #16
+- **adminProductService** conectado al backend real; normalización de campos `isActive`/`stockQuantity` — issue #16
+- **AdminOrdersView** `/admin/pedidos`: tabla con filtros por estado, nombre/# y rango de fechas; badges de estado de pedido y pago — issue #17
+- **AdminOrderDetailView** `/admin/pedidos/:id`: detalle completo con items, snapshots de envío/facturación, totales, referencia de pago MP — issue #17
+- **Cambio de estado** con transiciones definidas (pending → confirmed → shipped → delivered / cancelled desde cualquier estado); campo de número de seguimiento al pasar a "Enviado" — issue #17
+- `adminOrderService`: `getAll`, `getById`, `updateStatus` en `api.js` con `USE_MOCK = true` — issue #17
 
 #### Blocked
 - Upload real de imágenes → pendiente integración Cloudinary (Generic-Ecommerce#1)
-- API real de productos admin → pendiente backend
+- API real de pedidos admin → pendiente endpoint `/admin/orders` en backend
 
 ### Fase 6 — Backoffice (continuación)
 
-- [ ] **Gestión de pedidos** y cambio de estado — issue #17
 - [ ] **Categorías, promociones** y configuración de envío — issue #18
 
 ---
