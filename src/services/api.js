@@ -168,4 +168,16 @@ export const productService = {
   },
 }
 
+// TODO(fase-5): conectar cuando el backend exponga /orders del cliente
+export const myOrdersService = {
+  async getOrders() {
+    const { data } = await api.get('/my/orders')
+    return data // [{ id, number, date, status, total, items }]
+  },
+  async getOrderById(id) {
+    const { data } = await api.get(`/my/orders/${id}`)
+    return data // { id, number, date, status, items, shippingAddress, shippingOption, needsInvoice, invoiceData, notes, total }
+  },
+}
+
 export default api
