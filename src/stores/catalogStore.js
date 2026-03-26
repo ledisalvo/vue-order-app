@@ -2,9 +2,9 @@ import { defineStore } from 'pinia'
 import { ref, reactive } from 'vue'
 import { catalogService } from '@/services/api'
 import { mockProducts, mockCategories } from '@/data/mockProducts.js'
+import { isDemoMode } from '@/config'
 
-// TODO(fase-3): eliminar USE_MOCK cuando Generic-Ecommerce#28 esté listo
-const USE_MOCK = true
+const USE_MOCK = isDemoMode
 
 export const useCatalogStore = defineStore('catalog', () => {
   // --- Estado de productos ---

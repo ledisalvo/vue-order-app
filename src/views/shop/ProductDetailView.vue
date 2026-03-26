@@ -126,9 +126,9 @@ import ProductGallery from '@/components/shop/ProductGallery.vue'
 import VariantSelector from '@/components/shop/VariantSelector.vue'
 import { productDetailService } from '@/services/api'
 import { mockProductDetails } from '@/data/mockProducts.js'
+import { isDemoMode } from '@/config'
 
-// TODO(fase-3): cambiar a false cuando Generic-Ecommerce exponga GET /products/:slug
-const USE_MOCK = true
+const USE_MOCK = isDemoMode
 
 const route     = useRoute()
 const cartStore = useCartStore()

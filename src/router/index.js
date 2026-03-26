@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
+import { isDemoMode } from '@/config'
 
 const routes = [
   {
@@ -114,6 +115,8 @@ const router = createRouter({
 })
 
 router.beforeEach((to, _from) => {
+  if (isDemoMode) return // en demo mode todas las rutas son accesibles
+
   const authStore = useAuthStore()
 
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {

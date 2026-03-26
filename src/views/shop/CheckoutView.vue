@@ -39,6 +39,7 @@ import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCartStore } from '@/stores/cartStore'
 import { useCheckoutStore, STEPS } from '@/stores/checkoutStore'
+import { isDemoMode } from '@/config'
 
 import CheckoutStepper from '@/components/checkout/CheckoutStepper.vue'
 import StepCart        from '@/components/checkout/StepCart.vue'
@@ -85,8 +86,12 @@ function handleGo(step) {
 }
 
 function handlePaid(initPoint) {
-  // TODO(fase-6): redirigir a pantalla de resultado interna cuando esté disponible
-  window.location.href = initPoint
+  cartStore.clearCart()
+  if (isDemoMode || !initPoint) {
+    router.push('/checkout/resultado')
+  } else {
+    window.location.href = initPoint
+  }
 }
 </script>
 

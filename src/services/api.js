@@ -1,9 +1,8 @@
 import axios from 'axios'
-
-const API_BASE_URL = 'http://localhost:5141/api'
+import { apiBaseUrl } from '@/config'
 
 const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: apiBaseUrl,
   headers: { 'Content-Type': 'application/json' },
 })
 
@@ -262,6 +261,14 @@ export const adminOrderService = {
   async updateStatus(id, status, trackingNumber = null) {
     const { data } = await api.put(`/admin/orders/${id}/status`, { status, trackingNumber })
     return data
+  },
+}
+
+// TODO(fase-5): conectar cuando el backend exponga /my/orders
+export const myOrdersService = {
+  async getOrders() {
+    const { data } = await api.get('/my/orders')
+    return data // [{ id, number, date, status, total, items }]
   },
 }
 

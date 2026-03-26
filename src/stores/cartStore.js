@@ -1,9 +1,9 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { cartApiService } from '@/services/api'
+import { isDemoMode } from '@/config'
 
-// TODO(fase-4): cambiar a false cuando el backend exponga /cart
-const USE_MOCK = true
+const USE_MOCK = isDemoMode
 
 export const useCartStore = defineStore(
   'cart',

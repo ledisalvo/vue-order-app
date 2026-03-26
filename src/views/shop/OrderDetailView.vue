@@ -136,8 +136,9 @@
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { myOrdersService } from '@/services/api'
+import { isDemoMode } from '@/config'
 
-const USE_MOCK = true
+const USE_MOCK = isDemoMode
 
 const route   = useRoute()
 const loading = ref(true)
