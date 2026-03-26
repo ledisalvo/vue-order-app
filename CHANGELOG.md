@@ -57,13 +57,28 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/).
 - Activación de API real del catálogo → bloqueado por [Generic-Ecommerce#28](https://github.com/ledisalvo/Generic-Ecommerce/issues/28)
 - Activación de API real del carrito → bloqueado por endpoint `/cart` pendiente en backend
 
+### Fase 4 — Checkout y pagos ✅ (parcial)
+
+#### Added
+- **checkoutStore**: máquina de estados de 5 pasos, `saveToSession`/`restoreFromSession` para sesión interrumpida — issue #12
+- **CheckoutStepper**: indicador de progreso con pasos completados clickeables — issue #12
+- **StepCart** (paso 1): revisión de carrito de solo lectura con link a edición — issue #12
+- **StepShipping** (paso 2): direcciones guardadas, formulario nueva dirección con validación, opciones de envío con mock (estándar/express/retiro), edge case zona sin cobertura — issue #12
+- **StepBilling** (paso 3): toggle "Necesito factura" con animación slide, campos CUIT + razón social — issue #12
+- **StepNotes** (paso 4): textarea opcional con contador 500 chars — issue #12
+- **StepReview** (paso 5): resumen completo con botones editar por sección, totales con envío, CTA "Ir a pagar" — issue #12
+- **CheckoutView**: contenedor principal, orquesta los 5 pasos, guarda estado en store, redirige a MercadoPago al pagar — issue #12
+- **checkoutService**: `getAddresses`, `getShippingOptions`, `createOrder` en `api.js` — issue #12
+
+#### Blocked
+- Activación de API real del checkout → bloqueado por [Generic-Ecommerce#27](https://github.com/ledisalvo/Generic-Ecommerce/issues/27) (MercadoPago)
+
 ---
 
 ## Planificado
 
-### Fase 4 — Checkout y pagos
+### Fase 4 — Checkout y pagos (continuación)
 
-- [ ] **Checkout multi-paso**: datos personales → dirección de envío → resumen y pago — issue #12
 - [ ] **MercadoPago Checkout Pro** + pantalla de resultado (approved/pending/failure) — issue #13
 - [ ] Activación de carrito backend → bloqueado por [Generic-Ecommerce#27](https://github.com/ledisalvo/Generic-Ecommerce/issues/27) (MP)
 
