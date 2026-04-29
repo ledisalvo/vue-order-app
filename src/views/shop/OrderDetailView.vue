@@ -135,10 +135,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { myOrdersService } from '@/services/api'
-import { isDemoMode } from '@/config'
-
-const USE_MOCK = isDemoMode
+import { orderService } from '@/services/api'
 
 const route   = useRoute()
 const loading = ref(true)
@@ -159,58 +156,11 @@ function isStepDone(key) {
 }
 function isStepCurrent(key) { return order.value?.status === key }
 
-const MOCK_ORDERS = {
-  'ord-001': {
-    id: 'ord-001', number: '2024-001', date: '2024-11-10T14:30:00Z', status: 'delivered',
-    total: 35400, subtotal: 32900,
-    items: [
-      { productId: 'p1', name: 'Remera Oversize', image: null, quantity: 2, unitPrice: 12500, variant: { Talle: 'M', Color: 'Negro' } },
-      { productId: 'p2', name: 'Jogger Deportivo', image: null, quantity: 1, unitPrice: 10400, variant: { Talle: 'L' } },
-    ],
-    shippingAddress: { name: 'Juan Pérez', street: 'Av. Corrientes 1234', city: 'Buenos Aires', province: 'CABA', zip: '1414', phone: '11 2345-6789' },
-    shippingOption: { name: 'Envío estándar', price: 2500 },
-    needsInvoice: false,
-    invoiceData: null,
-    notes: 'Por favor envolver para regalo.',
-  },
-  'ord-002': {
-    id: 'ord-002', number: '2024-002', date: '2024-12-05T09:15:00Z', status: 'shipped',
-    total: 18900, subtotal: 18900,
-    items: [
-      { productId: 'p3', name: 'Buzo Canguro', image: null, quantity: 1, unitPrice: 18900, variant: { Talle: 'XL', Color: 'Gris' } },
-    ],
-    shippingAddress: { name: 'María García', street: 'Belgrano 567', city: 'Córdoba', province: 'Córdoba', zip: '5000', phone: '351 678-9012' },
-    shippingOption: { name: 'Retiro en local', price: 0 },
-    needsInvoice: true,
-    invoiceData: { cuit: '20-12345678-9', razonSocial: 'García María S.R.L.' },
-    notes: '',
-  },
-  'ord-003': {
-    id: 'ord-003', number: '2025-001', date: '2025-01-20T17:45:00Z', status: 'confirmed',
-    total: 8750, subtotal: 3250,
-    items: [
-      { productId: 'p4', name: 'Calza Deportiva', image: null, quantity: 1, unitPrice: 8750, variant: { Talle: 'S' } },
-    ],
-    shippingAddress: { name: 'Carlos López', street: 'San Martín 890', city: 'Rosario', province: 'Santa Fe', zip: '2000', phone: '341 234-5678' },
-    shippingOption: { name: 'Envío express', price: 5500 },
-    needsInvoice: false,
-    invoiceData: null,
-    notes: '',
-  },
-}
-
 async function load() {
   loading.value = true
   error.value   = null
   try {
-    if (USE_MOCK) {
-      await new Promise(r => setTimeout(r, 400))
-      const found = MOCK_ORDERS[route.params.id]
-      if (!found) throw new Error('not found')
-      order.value = found
-    } else {
-      order.value = await myOrdersService.getOrderById(route.params.id)
-    }
+    order.value = await orderService.getById(route.params.id)
   } catch {
     error.value = 'No pudimos cargar el pedido. Intentá de nuevo.'
   } finally {

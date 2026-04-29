@@ -113,9 +113,6 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { useCartStore } from '@/stores/cartStore'
 import { checkoutService } from '@/services/api'
-import { isDemoMode } from '@/config'
-
-const USE_MOCK = isDemoMode
 
 const cartStore = useCartStore()
 const emit = defineEmits(['next', 'back'])
@@ -171,22 +168,7 @@ async function fetchShippingOptions(address) {
   shippingError.value  = null
   selectedOption.value = null
   try {
-    if (USE_MOCK) {
-      await new Promise(r => setTimeout(r, 600))
-      // Simular zona no cubierta para CP fuera de rango
-      if (address.zip === '9999') {
-        shippingError.value = 'No hacemos envíos a esa zona por el momento.'
-        shippingOptions.value = [{ id: 'pickup', name: 'Retiro en local', price: 0, estimatedDays: 0 }]
-        return
-      }
-      shippingOptions.value = [
-        { id: 'standard', name: 'Envío estándar', price: 2500,  estimatedDays: '5-7' },
-        { id: 'express',  name: 'Envío express',  price: 5500,  estimatedDays: '1-2' },
-        { id: 'pickup',   name: 'Retiro en local', price: 0,    estimatedDays: 0 },
-      ]
-    } else {
-      shippingOptions.value = await checkoutService.getShippingOptions(address.id, cartStore.items)
-    }
+    shippingOptions.value = await checkoutService.getShippingOptions(address.id, cartStore.items)
   } catch {
     shippingError.value = 'No pudimos calcular las opciones de envío. Intentá de nuevo.'
   } finally {
@@ -197,13 +179,7 @@ async function fetchShippingOptions(address) {
 watch(activeAddress, (addr) => { if (addr) fetchShippingOptions(addr) }, { deep: true })
 
 onMounted(async () => {
-  if (USE_MOCK) {
-    savedAddresses.value = [
-      { id: 'a1', name: 'Casa', street: 'Av. Corrientes 1234', city: 'Buenos Aires', province: 'CABA', zip: '1414', phone: '11 2345-6789', isDefault: true },
-    ]
-  } else {
-    savedAddresses.value = await checkoutService.getAddresses()
-  }
+  savedAddresses.value = await checkoutService.getAddresses()
   const def = savedAddresses.value.find(a => a.isDefault)
   if (def) selectedAddressId.value = def.id
 })

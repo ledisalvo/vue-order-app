@@ -120,8 +120,6 @@
 import { ref, computed, onMounted } from 'vue'
 import { adminProductService } from '@/services/api'
 
-const USE_MOCK = false
-
 const loading     = ref(true)
 const products    = ref([])
 const search      = ref('')
@@ -129,14 +127,6 @@ const filterActive = ref('')
 const toggling    = ref(null)
 const deleteTarget = ref(null)
 const deleting    = ref(false)
-
-const MOCK_PRODUCTS = [
-  { id: 'p1', name: 'Remera Oversize', slug: 'remera-oversize', category: 'Remeras', price: 12500, totalStock: 45, active: true, images: [] },
-  { id: 'p2', name: 'Jogger Deportivo', slug: 'jogger-deportivo', category: 'Pantalones', price: 10400, totalStock: 3, active: true, images: [] },
-  { id: 'p3', name: 'Buzo Canguro', slug: 'buzo-canguro', category: 'Buzos', price: 18900, totalStock: 12, active: true, images: [] },
-  { id: 'p4', name: 'Calza Deportiva', slug: 'calza-deportiva', category: 'Calzas', price: 8750, totalStock: 0, active: false, images: [] },
-  { id: 'p5', name: 'Campera Rompevientos', slug: 'campera-rompevientos', category: 'Camperas', price: 32000, totalStock: 8, active: true, images: [] },
-]
 
 const filtered = computed(() => {
   let list = products.value
@@ -156,12 +146,7 @@ const total = computed(() => products.value.length)
 async function load() {
   loading.value = true
   try {
-    if (USE_MOCK) {
-      await new Promise(r => setTimeout(r, 400))
-      products.value = [...MOCK_PRODUCTS]
-    } else {
-      products.value = await adminProductService.getAll()
-    }
+    products.value = await adminProductService.getAll()
   } finally {
     loading.value = false
   }
@@ -172,14 +157,8 @@ onMounted(load)
 async function toggle(p) {
   toggling.value = p.id
   try {
-    if (USE_MOCK) {
-      await new Promise(r => setTimeout(r, 300))
-      const found = products.value.find(x => x.id === p.id)
-      if (found) found.active = !found.active
-    } else {
-      await adminProductService.toggleActive(p, !p.active)
-      await load()
-    }
+    await adminProductService.toggleActive(p, !p.active)
+    await load()
   } finally {
     toggling.value = null
   }
@@ -191,13 +170,8 @@ async function deleteProduct() {
   if (!deleteTarget.value) return
   deleting.value = true
   try {
-    if (USE_MOCK) {
-      await new Promise(r => setTimeout(r, 400))
-      products.value = products.value.filter(p => p.id !== deleteTarget.value.id)
-    } else {
-      await adminProductService.remove(deleteTarget.value.id)
-      await load()
-    }
+    await adminProductService.remove(deleteTarget.value.id)
+    await load()
     deleteTarget.value = null
   } finally {
     deleting.value = false

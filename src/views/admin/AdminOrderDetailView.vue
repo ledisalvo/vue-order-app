@@ -144,8 +144,6 @@ import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { adminOrderService } from '@/services/api'
 
-const USE_MOCK = true
-
 const route  = useRoute()
 const loading = ref(true)
 const error   = ref(null)
@@ -172,27 +170,11 @@ const ALLOWED_TRANSITIONS = {
   cancelled: [],
 }
 
-// Shared mock store (same as AdminOrdersView)
-const MOCK_ORDERS = {
-  o1: { id: 'o1', number: '2025-001', date: '2025-01-15T10:00:00Z', customer: { id: 'c1', name: 'Juan Pérez', email: 'juan@mail.com' }, total: 35400, status: 'delivered', paymentStatus: 'approved', trackingNumber: 'OCA-123456', items: [{ productId: 'p1', name: 'Remera Oversize', quantity: 2, unitPrice: 12500, variant: { Talle: 'M', Color: 'Negro' } }], shippingAddress: { name: 'Juan Pérez', street: 'Av. Corrientes 1234', city: 'Buenos Aires', province: 'CABA', zip: '1414', phone: '11 2345-6789' }, shippingOption: { name: 'Envío estándar', price: 2500 }, needsInvoice: false, invoiceData: null, notes: 'Por favor envolver.', paymentReference: 'MP-987654' },
-  o2: { id: 'o2', number: '2025-002', date: '2025-02-03T14:30:00Z', customer: { id: 'c2', name: 'María García', email: 'maria@mail.com' }, total: 18900, status: 'shipped', paymentStatus: 'approved', trackingNumber: 'ANDREANI-789012', items: [{ productId: 'p3', name: 'Buzo Canguro', quantity: 1, unitPrice: 18900, variant: { Talle: 'XL', Color: 'Gris' } }], shippingAddress: { name: 'María García', street: 'Belgrano 567', city: 'Córdoba', province: 'Córdoba', zip: '5000', phone: '351 678-9012' }, shippingOption: { name: 'Envío express', price: 5500 }, needsInvoice: true, invoiceData: { cuit: '20-12345678-9', razonSocial: 'García María S.R.L.' }, notes: '', paymentReference: 'MP-111222' },
-  o3: { id: 'o3', number: '2025-003', date: '2025-03-10T09:15:00Z', customer: { id: 'c3', name: 'Carlos López', email: 'carlos@mail.com' }, total: 8750,  status: 'confirmed', paymentStatus: 'approved', trackingNumber: null, items: [{ productId: 'p4', name: 'Calza Deportiva', quantity: 1, unitPrice: 8750, variant: { Talle: 'S' } }], shippingAddress: { name: 'Carlos López', street: 'San Martín 890', city: 'Rosario', province: 'Santa Fe', zip: '2000', phone: '341 234-5678' }, shippingOption: { name: 'Retiro en local', price: 0 }, needsInvoice: false, invoiceData: null, notes: '', paymentReference: 'MP-333444' },
-  o4: { id: 'o4', number: '2025-004', date: '2025-03-15T16:45:00Z', customer: { id: 'c4', name: 'Ana Martínez', email: 'ana@mail.com' }, total: 12500, status: 'pending_payment', paymentStatus: 'pending', trackingNumber: null, items: [], shippingAddress: { name: 'Ana Martínez', street: 'Lavalle 234', city: 'Mendoza', province: 'Mendoza', zip: '5500', phone: '261 345-6789' }, shippingOption: { name: 'Envío estándar', price: 2500 }, needsInvoice: false, invoiceData: null, notes: '', paymentReference: null },
-  o5: { id: 'o5', number: '2025-005', date: '2025-03-18T11:00:00Z', customer: { id: 'c5', name: 'Pedro Sánchez', email: 'pedro@mail.com' }, total: 6800,  status: 'cancelled', paymentStatus: 'refunded', trackingNumber: null, items: [], shippingAddress: { name: 'Pedro Sánchez', street: 'Mitre 100', city: 'Tucumán', province: 'Tucumán', zip: '4000', phone: '381 456-7890' }, shippingOption: { name: 'Envío estándar', price: 2500 }, needsInvoice: false, invoiceData: null, notes: '', paymentReference: 'MP-555666' },
-}
-
 async function load() {
   loading.value = true
   error.value   = null
   try {
-    if (USE_MOCK) {
-      await new Promise(r => setTimeout(r, 350))
-      const found = MOCK_ORDERS[route.params.id]
-      if (!found) throw new Error('not found')
-      order.value = { ...found }
-    } else {
-      order.value = await adminOrderService.getById(route.params.id)
-    }
+    order.value = await adminOrderService.getById(route.params.id)
   } catch {
     error.value = 'No pudimos cargar el pedido.'
   } finally {
@@ -206,14 +188,8 @@ async function changeStatus() {
   changingStatus.value = true
   statusError.value    = null
   try {
-    if (USE_MOCK) {
-      await new Promise(r => setTimeout(r, 500))
-      order.value.status = newStatus.value
-      if (newStatus.value === 'shipped') order.value.trackingNumber = trackingNumber.value || null
-    } else {
-      await adminOrderService.updateStatus(order.value.id, newStatus.value, trackingNumber.value || null)
-      await load()
-    }
+    await adminOrderService.updateStatus(order.value.id, newStatus.value, trackingNumber.value || null)
+    await load()
     newStatus.value      = ''
     trackingNumber.value = ''
   } catch {

@@ -142,14 +142,11 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { addressesService } from '@/services/api'
-import { isDemoMode } from '@/config'
-
-const USE_MOCK = isDemoMode
 
 const PROVINCES = ['Buenos Aires','CABA','Catamarca','Chaco','Chubut','Córdoba','Corrientes','Entre Ríos','Formosa','Jujuy','La Pampa','La Rioja','Mendoza','Misiones','Neuquén','Río Negro','Salta','San Juan','San Luis','Santa Cruz','Santa Fe','Santiago del Estero','Tierra del Fuego','Tucumán']
 
 const loading     = ref(true)
-const saving      = ref(null) // id of address being saved
+const saving      = ref(null)
 const addresses   = ref([])
 const showForm    = ref(false)
 const editingId   = ref(null)
@@ -162,20 +159,10 @@ const EMPTY_FORM = () => ({ alias: '', name: '', street: '', city: '', province:
 const form   = ref(EMPTY_FORM())
 const errors = ref({})
 
-let nextMockId = 10
-const mockAddresses = ref([
-  { id: 'a1', alias: 'Casa', name: 'Juan Pérez', street: 'Av. Corrientes 1234', city: 'Buenos Aires', province: 'CABA', zip: '1414', phone: '11 2345-6789', isDefault: true },
-])
-
 async function load() {
   loading.value = true
   try {
-    if (USE_MOCK) {
-      await new Promise(r => setTimeout(r, 400))
-      addresses.value = [...mockAddresses.value]
-    } else {
-      addresses.value = await addressesService.getAll()
-    }
+    addresses.value = await addressesService.getAll()
   } finally {
     loading.value = false
   }
@@ -220,31 +207,12 @@ async function submitForm() {
   formSaving.value = true
   formError.value  = null
   try {
-    if (USE_MOCK) {
-      await new Promise(r => setTimeout(r, 500))
-      if (editingId.value) {
-        const idx = mockAddresses.value.findIndex(a => a.id === editingId.value)
-        if (idx !== -1) mockAddresses.value[idx] = { ...form.value, id: editingId.value }
-      } else {
-        const newAddr = { ...form.value, id: 'a' + (nextMockId++) }
-        mockAddresses.value.push(newAddr)
-      }
-      // Si se marca como predeterminada, desmarcar las otras
-      if (form.value.isDefault) {
-        mockAddresses.value.forEach(a => { if (a.id !== (editingId.value ?? mockAddresses.value.at(-1)?.id)) a.isDefault = false })
-        const target = editingId.value ?? mockAddresses.value.at(-1)?.id
-        const t = mockAddresses.value.find(a => a.id === target)
-        if (t) t.isDefault = true
-      }
-      addresses.value = [...mockAddresses.value]
+    if (editingId.value) {
+      await addressesService.update(editingId.value, form.value)
     } else {
-      if (editingId.value) {
-        await addressesService.update(editingId.value, form.value)
-      } else {
-        await addressesService.create(form.value)
-      }
-      addresses.value = await addressesService.getAll()
+      await addressesService.create(form.value)
     }
+    addresses.value = await addressesService.getAll()
     cancelForm()
   } catch {
     formError.value = 'No pudimos guardar la dirección. Intentá de nuevo.'
@@ -256,14 +224,8 @@ async function submitForm() {
 async function setDefault(id) {
   saving.value = id
   try {
-    if (USE_MOCK) {
-      await new Promise(r => setTimeout(r, 300))
-      mockAddresses.value.forEach(a => { a.isDefault = a.id === id })
-      addresses.value = [...mockAddresses.value]
-    } else {
-      await addressesService.setDefault(id)
-      addresses.value = await addressesService.getAll()
-    }
+    await addressesService.setDefault(id)
+    addresses.value = await addressesService.getAll()
   } finally {
     saving.value = null
   }
@@ -277,14 +239,8 @@ async function deleteAddress() {
   if (!deleteTarget.value) return
   deleting.value = true
   try {
-    if (USE_MOCK) {
-      await new Promise(r => setTimeout(r, 400))
-      mockAddresses.value = mockAddresses.value.filter(a => a.id !== deleteTarget.value.id)
-      addresses.value = [...mockAddresses.value]
-    } else {
-      await addressesService.remove(deleteTarget.value.id)
-      addresses.value = await addressesService.getAll()
-    }
+    await addressesService.remove(deleteTarget.value.id)
+    addresses.value = await addressesService.getAll()
     deleteTarget.value = null
   } finally {
     deleting.value = false

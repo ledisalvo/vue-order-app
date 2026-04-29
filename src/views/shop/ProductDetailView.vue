@@ -125,10 +125,6 @@ import { useToast } from '@/composables/useToast'
 import ProductGallery from '@/components/shop/ProductGallery.vue'
 import VariantSelector from '@/components/shop/VariantSelector.vue'
 import { productDetailService } from '@/services/api'
-import { mockProductDetails } from '@/data/mockProducts.js'
-import { isDemoMode } from '@/config'
-
-const USE_MOCK = isDemoMode
 
 const route     = useRoute()
 const cartStore = useCartStore()
@@ -149,14 +145,7 @@ async function loadProduct(slug) {
   product.value    = null
 
   try {
-    if (USE_MOCK) {
-      await new Promise(r => setTimeout(r, 300)) // simula latencia
-      const found = mockProductDetails[slug]
-      if (!found) throw new Error('Producto no encontrado')
-      product.value = found
-    } else {
-      product.value = await productDetailService.getBySlug(slug)
-    }
+    product.value = await productDetailService.getById(slug)
   } catch (err) {
     fetchError.value = err.message || 'Error al cargar el producto'
   } finally {
@@ -233,11 +222,6 @@ async function addToCart() {
   addingToCart.value = true
 
   try {
-    if (!USE_MOCK) {
-      // Cuando el backend esté listo: llamar cartApiService.addItem()
-      // const { cartItem } = await cartApiService.addItem(resolvedVariant.value?.id ?? product.value.id, qty.value)
-    }
-
     cartStore.addItem({
       id:    resolvedVariant.value?.id ?? product.value.id,
       name:  product.value.name,

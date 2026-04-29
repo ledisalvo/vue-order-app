@@ -288,8 +288,6 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { adminConfigService } from '@/services/api'
 
-const USE_MOCK = true
-
 const TABS = [
   { key: 'categories', label: 'Categorías' },
   { key: 'promotions', label: 'Promociones' },
@@ -307,12 +305,6 @@ const cats = reactive({
   form: { name: '', slug: '', order: 1, active: true },
   errors: {},
 })
-const MOCK_CATS = ref([
-  { id: 'c1', name: 'Remeras',   slug: 'remeras',   order: 1, active: true },
-  { id: 'c2', name: 'Pantalones', slug: 'pantalones', order: 2, active: true },
-  { id: 'c3', name: 'Buzos',     slug: 'buzos',     order: 3, active: true },
-  { id: 'c4', name: 'Calzas',    slug: 'calzas',    order: 4, active: false },
-])
 
 function openCatForm(cat = null) {
   cats.editingId = cat?.id ?? null
@@ -327,20 +319,21 @@ function autoCatSlug() {
 async function saveCategory() {
   if (!cats.form.name.trim()) { cats.errors = { name: 'Requerido' }; return }
   cats.saving = true
-  await new Promise(r => setTimeout(r, 300))
-  if (cats.editingId) {
-    const idx = MOCK_CATS.value.findIndex(c => c.id === cats.editingId)
-    if (idx !== -1) MOCK_CATS.value[idx] = { ...cats.form, id: cats.editingId }
-  } else {
-    MOCK_CATS.value.push({ ...cats.form, id: 'c' + Date.now() })
+  try {
+    if (cats.editingId) {
+      await adminConfigService.updateCategory(cats.editingId, cats.form)
+    } else {
+      await adminConfigService.createCategory(cats.form)
+    }
+    categories.value = await adminConfigService.getCategories()
+    cats.showForm = false
+  } finally {
+    cats.saving = false
   }
-  categories.value = [...MOCK_CATS.value]
-  cats.saving = false
-  cats.showForm = false
 }
 async function deleteCategory(id) {
-  MOCK_CATS.value = MOCK_CATS.value.filter(c => c.id !== id)
-  categories.value = [...MOCK_CATS.value]
+  await adminConfigService.deleteCategory(id)
+  categories.value = categories.value.filter(c => c.id !== id)
 }
 
 // ─── PROMOTIONS ───
@@ -350,10 +343,6 @@ const promos = reactive({
   form: { name: '', type: 'percent', value: null, minCartAmount: null, dateFrom: '', dateTo: '', active: true },
   errors: {},
 })
-const MOCK_PROMOS = ref([
-  { id: 'pr1', name: '10% en primera compra', type: 'percent', value: 10, minCartAmount: 0, dateFrom: '2025-01-01', dateTo: '2025-12-31', active: true },
-  { id: 'pr2', name: 'Envío gratis en buzos',  type: 'fixed',   value: 2500, minCartAmount: 15000, dateFrom: '2025-03-01', dateTo: '2025-03-31', active: false },
-])
 
 function openPromoForm(promo = null) {
   promos.editingId = promo?.id ?? null
@@ -367,20 +356,21 @@ async function savePromotion() {
   if (!promos.form.value)       e.value = 'Requerido'
   if (Object.keys(e).length) { promos.errors = e; return }
   promos.saving = true
-  await new Promise(r => setTimeout(r, 300))
-  if (promos.editingId) {
-    const idx = MOCK_PROMOS.value.findIndex(p => p.id === promos.editingId)
-    if (idx !== -1) MOCK_PROMOS.value[idx] = { ...promos.form, id: promos.editingId }
-  } else {
-    MOCK_PROMOS.value.push({ ...promos.form, id: 'pr' + Date.now() })
+  try {
+    if (promos.editingId) {
+      await adminConfigService.updatePromotion(promos.editingId, promos.form)
+    } else {
+      await adminConfigService.createPromotion(promos.form)
+    }
+    promotions.value = await adminConfigService.getPromotions()
+    promos.showForm = false
+  } finally {
+    promos.saving = false
   }
-  promotions.value = [...MOCK_PROMOS.value]
-  promos.saving = false
-  promos.showForm = false
 }
 async function deletePromotion(id) {
-  MOCK_PROMOS.value = MOCK_PROMOS.value.filter(p => p.id !== id)
-  promotions.value = [...MOCK_PROMOS.value]
+  await adminConfigService.deletePromotion(id)
+  promotions.value = promotions.value.filter(p => p.id !== id)
 }
 
 // ─── SHIPPING ZONES ───
@@ -390,10 +380,6 @@ const zones = reactive({
   form: { name: '', provinces: [], baseCost: null, costPerKg: null, freeShippingThreshold: 0 },
   errors: {},
 })
-const MOCK_ZONES = ref([
-  { id: 'z1', name: 'CABA y GBA', provinces: ['CABA', 'Buenos Aires'], baseCost: 2500, costPerKg: 30, freeShippingThreshold: 20000 },
-  { id: 'z2', name: 'Interior',   provinces: ['Córdoba','Rosario','Mendoza','Santa Fe','Tucumán','Salta','Corrientes','Chaco','Misiones'], baseCost: 4500, costPerKg: 50, freeShippingThreshold: 30000 },
-])
 
 function openZoneForm(zone = null) {
   zones.editingId = zone?.id ?? null
@@ -404,54 +390,65 @@ function openZoneForm(zone = null) {
 async function saveZone() {
   if (!zones.form.name.trim()) { zones.errors = { name: 'Requerido' }; return }
   zones.saving = true
-  await new Promise(r => setTimeout(r, 300))
-  if (zones.editingId) {
-    const idx = MOCK_ZONES.value.findIndex(z => z.id === zones.editingId)
-    if (idx !== -1) MOCK_ZONES.value[idx] = { ...zones.form, id: zones.editingId }
-  } else {
-    MOCK_ZONES.value.push({ ...zones.form, id: 'z' + Date.now() })
+  try {
+    if (zones.editingId) {
+      await adminConfigService.updateShippingZone(zones.editingId, zones.form)
+    } else {
+      await adminConfigService.createShippingZone(zones.form)
+    }
+    shippingZones.value = await adminConfigService.getShippingZones()
+    zones.showForm = false
+  } finally {
+    zones.saving = false
   }
-  shippingZones.value = [...MOCK_ZONES.value]
-  zones.saving = false
-  zones.showForm = false
 }
 async function deleteZone(id) {
-  MOCK_ZONES.value = MOCK_ZONES.value.filter(z => z.id !== id)
-  shippingZones.value = [...MOCK_ZONES.value]
+  await adminConfigService.deleteShippingZone(id)
+  shippingZones.value = shippingZones.value.filter(z => z.id !== id)
 }
 
 // ─── PICKUP ───
 const pickup = reactive({
   saving: false, saved: false, error: null,
+  pickupId: null,
   form: { name: 'Local central', address: '', hours: '', phone: '', notes: '', active: true },
 })
-const MOCK_PICKUP = { name: 'Local central', address: 'Av. Santa Fe 1234, Piso 2, CABA', hours: 'Lun–Vie 10–18hs', phone: '11 2345-6789', notes: 'Tocar timbre al llegar.', active: true }
 
 async function savePickup() {
   pickup.saving = true
   pickup.error  = null
   pickup.saved  = false
-  await new Promise(r => setTimeout(r, 400))
-  pickup.saving = false
-  pickup.saved  = true
-  setTimeout(() => { pickup.saved = false }, 3000)
+  try {
+    await adminConfigService.updatePickupPoint(pickup.pickupId, pickup.form)
+    pickup.saved = true
+    setTimeout(() => { pickup.saved = false }, 3000)
+  } catch {
+    pickup.error = 'No pudimos guardar el punto de retiro.'
+  } finally {
+    pickup.saving = false
+  }
 }
 
 onMounted(async () => {
-  if (USE_MOCK) {
-    await new Promise(r => setTimeout(r, 300))
-    categories.value  = [...MOCK_CATS.value]
-    promotions.value  = [...MOCK_PROMOS.value]
-    shippingZones.value = [...MOCK_ZONES.value]
-    pickup.form       = { ...MOCK_PICKUP }
-  } else {
-    categories.value    = await adminConfigService.getCategories()
-    promotions.value    = await adminConfigService.getPromotions()
-    shippingZones.value = await adminConfigService.getShippingZones()
-    const pts = await adminConfigService.getPickupPoints()
-    if (pts[0]) pickup.form = { ...pts[0] }
+  try {
+    const [cats_, promos_, zones_, pts] = await Promise.all([
+      adminConfigService.getCategories(),
+      adminConfigService.getPromotions(),
+      adminConfigService.getShippingZones(),
+      adminConfigService.getPickupPoints(),
+    ])
+    categories.value    = cats_
+    promotions.value    = promos_
+    shippingZones.value = zones_
+    if (pts[0]) {
+      pickup.pickupId = pts[0].id
+      pickup.form     = { ...pts[0] }
+    }
+  } catch {
+    // continuar con listas vacías
+  } finally {
+    cats.loading = false
   }
-  cats.loading = false
 })
 
 function formatPrice(n) {
