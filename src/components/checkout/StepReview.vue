@@ -80,7 +80,7 @@
         <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>
         </svg>
-        {{ submitting ? 'Procesando...' : (isDemoMode ? 'Confirmar pedido' : 'Ir a pagar') }}
+        {{ submitting ? 'Procesando...' : 'Ir a pagar' }}
       </button>
     </div>
   </div>
@@ -90,16 +90,13 @@
 import { ref, computed } from 'vue'
 import { useCartStore } from '@/stores/cartStore'
 import { useCheckoutStore } from '@/stores/checkoutStore'
-import { useDemoOrdersStore } from '@/stores/demoOrdersStore'
+import { useAuthStore } from '@/stores/authStore'
 import { checkoutService } from '@/services/api'
-import { isDemoMode } from '@/config'
-
-const USE_MOCK = isDemoMode
 
 const emit = defineEmits(['back', 'go', 'paid'])
-const cartStore       = useCartStore()
-const checkoutStore   = useCheckoutStore()
-const demoOrdersStore = isDemoMode ? useDemoOrdersStore() : null
+const cartStore     = useCartStore()
+const checkoutStore = useCheckoutStore()
+const authStore     = useAuthStore()
 
 const submitting = ref(false)
 const error      = ref(null)
@@ -112,36 +109,17 @@ async function handlePay() {
   submitting.value = true
   error.value      = null
   try {
-    if (USE_MOCK) {
-      await new Promise(r => setTimeout(r, 800))
-      const orderId = 'ORD-' + Date.now()
-      demoOrdersStore.addOrder({
-        id:     orderId,
-        number: orderId,
-        date:   new Date().toISOString(),
-        status: 'confirmed',
-        total:  grandTotal.value,
-        items:  cartStore.items.map(i => ({ ...i })),
-        shippingAddress: checkoutStore.shippingAddress,
-        shippingOption:  checkoutStore.shippingOption,
-        needsInvoice:    checkoutStore.needsInvoice,
-        invoiceData:     checkoutStore.invoiceData,
-        notes:           checkoutStore.notes,
-      })
-      checkoutStore.setOrderResult(orderId, null)
-      emit('paid', null) // null indica que debe navegar internamente
-    } else {
-      const result = await checkoutService.createOrder({
-        items:           cartStore.items,
-        shippingAddress: checkoutStore.shippingAddress,
-        shippingOption:  checkoutStore.shippingOption,
-        needsInvoice:    checkoutStore.needsInvoice,
-        invoiceData:     checkoutStore.invoiceData,
-        notes:           checkoutStore.notes,
-      })
-      checkoutStore.setOrderResult(result.orderId, result.initPoint)
-      emit('paid', result.initPoint)
-    }
+    const result = await checkoutService.createOrder({
+      buyerEmail:      authStore.user?.email,
+      items:           cartStore.items,
+      shippingAddress: checkoutStore.shippingAddress,
+      shippingOption:  checkoutStore.shippingOption,
+      needsInvoice:    checkoutStore.needsInvoice,
+      invoiceData:     checkoutStore.invoiceData,
+      notes:           checkoutStore.notes,
+    })
+    checkoutStore.setOrderResult(result.orderId, result.initPoint)
+    emit('paid', result.initPoint)
   } catch (err) {
     error.value = err.message || 'Error al crear el pedido. Intentá de nuevo.'
   } finally {

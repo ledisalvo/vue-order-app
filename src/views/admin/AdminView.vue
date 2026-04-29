@@ -145,9 +145,7 @@
 
 <script setup>
 import { ref, computed, onMounted, h } from 'vue'
-import { adminDashboardService } from '@/services/api'
-
-const USE_MOCK = true
+import { orderService, adminProductService } from '@/services/api'
 
 const loading = ref(true)
 const stats   = ref({
@@ -156,30 +154,37 @@ const stats   = ref({
   recentOrders: [],
 })
 
-const MOCK_STATS = {
-  ordersToday:    4,
-  revenueToday:   76500,
-  pendingOrders:  2,
-  lowStockCount:  3,
-  outOfStockCount: 1,
-  recentOrders: [
-    { id: 'o4', number: '2025-004', customer: 'Ana Martínez',  date: '2025-03-19T16:45:00Z', status: 'pending_payment', total: 12500 },
-    { id: 'o3', number: '2025-003', customer: 'Carlos López',  date: '2025-03-10T09:15:00Z', status: 'confirmed',       total: 8750  },
-    { id: 'o2', number: '2025-002', customer: 'María García',  date: '2025-02-03T14:30:00Z', status: 'shipped',         total: 18900 },
-    { id: 'o1', number: '2025-001', customer: 'Juan Pérez',    date: '2025-01-15T10:00:00Z', status: 'delivered',       total: 35400 },
-    { id: 'o5', number: '2025-005', customer: 'Pedro Sánchez', date: '2025-03-18T11:00:00Z', status: 'cancelled',       total: 6800  },
-  ],
-}
-
 async function load() {
   loading.value = true
   try {
-    if (USE_MOCK) {
-      await new Promise(r => setTimeout(r, 500))
-      stats.value = MOCK_STATS
-    } else {
-      stats.value = await adminDashboardService.getSummary()
+    const [orders, products] = await Promise.all([
+      orderService.getAll(),
+      adminProductService.getAll(),
+    ])
+
+    const today   = new Date().toISOString().slice(0, 10)
+    const todayOrders = orders.filter(o => o.createdAt?.startsWith(today))
+
+    stats.value = {
+      ordersToday:    todayOrders.length,
+      revenueToday:   todayOrders.reduce((s, o) => s + (o.total ?? 0), 0),
+      pendingOrders:  orders.filter(o => o.status === 'pending_payment' || o.status === 'confirmed').length,
+      lowStockCount:  products.filter(p => p.totalStock > 0 && p.totalStock <= 5).length,
+      outOfStockCount: products.filter(p => p.totalStock === 0).length,
+      recentOrders:   [...orders]
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .slice(0, 5)
+        .map(o => ({
+          id:       o.id,
+          number:   o.number ?? o.id,
+          customer: o.buyerName ?? o.customer?.name ?? '—',
+          date:     o.createdAt,
+          status:   o.status,
+          total:    o.total,
+        })),
     }
+  } catch {
+    // mantener estado vacío — la UI muestra 0s
   } finally {
     loading.value = false
   }

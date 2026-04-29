@@ -1,29 +1,32 @@
 import axios from 'axios'
 import { apiBaseUrl } from '@/config'
+import type { AuthResponse, OnboardingResponse, TenantDetail } from '@/types'
 
 const api = axios.create({
   baseURL: apiBaseUrl,
   headers: { 'Content-Type': 'application/json' },
 })
 
-// --- Interceptor request: adjunta JWT si existe ---
+// --- Interceptor request: adjunta JWT y X-Tenant-Slug si existen ---
 api.interceptors.request.use((config) => {
   const raw = localStorage.getItem('auth')
   if (raw) {
     try {
-      const { token } = JSON.parse(raw)
+      const { token } = JSON.parse(raw) as { token?: string }
       if (token) config.headers.Authorization = `Bearer ${token}`
     } catch {
       // token malformado — ignorar
     }
   }
+  // Inyectar tenant activo si existe en sessionStorage/tenantStore hydration
+  const tenantSlug = sessionStorage.getItem('tenant_slug')
+  if (tenantSlug) config.headers['X-Tenant-Slug'] = tenantSlug
   return config
 })
 
 // --- Interceptor response: unwrap envelope + manejo de 401 ---
 api.interceptors.response.use(
   (response) => {
-    // API devuelve { success, value, errors }
     if (Object.prototype.hasOwnProperty.call(response.data, 'success')) {
       if (response.data.success) {
         response.data = response.data.value
@@ -35,13 +38,12 @@ api.interceptors.response.use(
   },
   (error) => {
     if (error.response?.status === 401) {
-      // Sesión expirada: limpiar auth y guardar ruta actual en sessionStorage
       localStorage.removeItem('auth')
       const redirect = window.location.pathname + window.location.search
-      if (redirect !== '/login') {
+      if (redirect !== '/auth/login') {
         sessionStorage.setItem('auth_redirect', redirect)
       }
-      window.location.href = '/login'
+      window.location.href = '/auth/login'
     }
     return Promise.reject(error)
   },
@@ -51,26 +53,40 @@ api.interceptors.response.use(
 
 // TODO(fase-2): conectar cuando Generic-Ecommerce#26 esté listo
 export const authService = {
-  async login(email, password) {
-    const { data } = await api.post('/auth/login', { email, password })
-    return data // { token, user }
+  async login(email: string, password: string): Promise<AuthResponse> {
+    const { data } = await api.post<AuthResponse>('/auth/login', { email, password })
+    return data
   },
-  async register(name, email, password) {
-    const { data } = await api.post('/auth/register', { name, email, password })
-    return data // { token, user }
+  async register(name: string, email: string, password: string): Promise<AuthResponse> {
+    const { data } = await api.post<AuthResponse>('/auth/register', { name, email, password })
+    return data
+  },
+}
+
+export const onboardingService = {
+  async submit(payload: {
+    name: string
+    email: string
+    password: string
+    storeName: string
+    storeSlug: string
+    category: string
+  }): Promise<OnboardingResponse> {
+    const { data } = await api.post<OnboardingResponse>('/auth/onboarding', payload)
+    return data
   },
 }
 
 export const customerService = {
-  async create(customer) {
+  async create(customer: Record<string, unknown>) {
     const { data } = await api.post('/customers', customer)
     return data
   },
-  async getById(id) {
+  async getById(id: string) {
     const { data } = await api.get(`/customers/${id}`)
     return data
   },
-  async getOrdersByCustomerId(customerId) {
+  async getOrdersByCustomerId(customerId: string) {
     const { data } = await api.get(`/customers/${customerId}/orders`)
     return data
   },
@@ -81,21 +97,28 @@ export const customerService = {
 }
 
 export const orderService = {
-  async create(orderData) {
+  async getAll(params: Record<string, unknown> = {}) {
+    const { data } = await api.get('/orders', { params })
+    return data
+  },
+  async getById(id: string) {
+    const { data } = await api.get(`/orders/${id}`)
+    return data
+  },
+  async create(orderData: Record<string, unknown>) {
     const { data } = await api.post('/orders', orderData)
     return data
   },
-  async updateStatus(orderId, status) {
+  async updateStatus(orderId: string, status: string) {
     const { data } = await api.put(`/orders/${orderId}/status`, { status })
     return data
   },
 }
 
-// TODO(fase-3): conectar cuando el backend exponga GET /products/:slug con variantes
 export const productDetailService = {
-  async getBySlug(slug) {
-    const { data } = await api.get(`/products/${slug}`)
-    return data // { id, slug, name, category, description, price, originalPrice, images, attributes, variants }
+  async getById(id: string) {
+    const { data } = await api.get(`/products/${id}`)
+    return data
   },
 }
 
@@ -103,15 +126,15 @@ export const productDetailService = {
 export const checkoutService = {
   async getAddresses() {
     const { data } = await api.get('/addresses')
-    return data // [{ id, name, street, city, province, zip, phone, isDefault }]
+    return data
   },
-  async getShippingOptions(addressId, items) {
+  async getShippingOptions(addressId: string, items: unknown[]) {
     const { data } = await api.post('/shipping/options', { addressId, items })
-    return data // [{ id, name, price, estimatedDays }]
+    return data
   },
-  async createOrder(payload) {
+  async createOrder(payload: Record<string, unknown>) {
     const { data } = await api.post('/orders', payload)
-    return data // { orderId, initPoint (URL MercadoPago) }
+    return data
   },
 }
 
@@ -119,32 +142,31 @@ export const checkoutService = {
 export const cartApiService = {
   async getCart() {
     const { data } = await api.get('/cart')
-    return data // { items, promotions }
+    return data
   },
-  async addItem(productId, quantity) {
+  async addItem(productId: string, quantity: number) {
     const { data } = await api.post('/cart/items', { productId, quantity })
-    return data // { items, promotions }
+    return data
   },
-  async updateItem(productId, quantity) {
+  async updateItem(productId: string, quantity: number) {
     const { data } = await api.put(`/cart/items/${productId}`, { quantity })
-    return data // { items, promotions }
+    return data
   },
-  async removeItem(productId) {
+  async removeItem(productId: string) {
     const { data } = await api.delete(`/cart/items/${productId}`)
-    return data // { items, promotions }
+    return data
   },
 }
 
 // TODO(fase-3): conectar cuando Generic-Ecommerce#28 esté listo
 export const catalogService = {
-  async getProducts(params = {}) {
-    // params: { page, pageSize, category, priceMin, priceMax, inStock }
+  async getProducts(params: Record<string, unknown> = {}) {
     const { data } = await api.get('/products', { params })
-    return data // { items, totalCount, page, pageSize, totalPages }
+    return data
   },
   async getCategories() {
     const { data } = await api.get('/categories')
-    return data // [{ slug, name, count }]
+    return data
   },
 }
 
@@ -153,15 +175,15 @@ export const productService = {
     const { data } = await api.get('/products')
     return data
   },
-  async create(product) {
+  async create(product: Record<string, unknown>) {
     const { data } = await api.post('/products', product)
     return data
   },
-  async update(id, product) {
+  async update(id: string, product: Record<string, unknown>) {
     const { data } = await api.put(`/products/${id}`, product)
     return data
   },
-  async delete(id) {
+  async delete(id: string) {
     const { data } = await api.delete(`/products/${id}`)
     return data
   },
@@ -170,22 +192,17 @@ export const productService = {
 export const adminProductService = {
   async getAll() {
     const { data } = await api.get('/products')
-    // Normalizar campos del backend al formato que usan las vistas
-    return data.map(p => ({
+    return data.map((p: Record<string, unknown>) => ({
       ...p,
       totalStock: p.stockQuantity,
       active: p.isActive,
     }))
   },
-  async getById(id) {
+  async getById(id: string) {
     const { data } = await api.get(`/products/${id}`)
-    return {
-      ...data,
-      stock: data.stockQuantity,
-      active: data.isActive,
-    }
+    return { ...data, stock: data.stockQuantity, active: data.isActive }
   },
-  async create(payload) {
+  async create(payload: { name: string; price: number; stock?: number }) {
     const { data } = await api.post('/products', {
       name: payload.name,
       price: payload.price,
@@ -193,7 +210,7 @@ export const adminProductService = {
     })
     return data
   },
-  async update(id, payload) {
+  async update(id: string, payload: { name: string; price: number; stock?: number; active?: boolean }) {
     const { data } = await api.put(`/products/${id}`, {
       name: payload.name,
       price: payload.price,
@@ -202,10 +219,10 @@ export const adminProductService = {
     })
     return data
   },
-  async remove(id) {
+  async remove(id: string) {
     await api.delete(`/products/${id}`)
   },
-  async toggleActive(product, active) {
+  async toggleActive(product: { id: string; name: string; price: number; totalStock?: number }, active: boolean) {
     const { data } = await api.put(`/products/${product.id}`, {
       name: product.name,
       price: product.price,
@@ -214,14 +231,13 @@ export const adminProductService = {
     })
     return data
   },
-  // TODO(cloudinary): conectar upload cuando Generic-Ecommerce#1 esté resuelto
-  async uploadImage(file) {
+  async uploadImage(file: File) {
     const form = new FormData()
     form.append('file', file)
     const { data } = await api.post('/admin/images/upload', form, {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
-    return data // { url, publicId }
+    return data
   },
 }
 
@@ -229,20 +245,20 @@ export const adminProductService = {
 export const addressesService = {
   async getAll() {
     const { data } = await api.get('/my/addresses')
-    return data // [{ id, alias, name, street, city, province, zip, phone, isDefault }]
+    return data
   },
-  async create(address) {
+  async create(address: Record<string, unknown>) {
     const { data } = await api.post('/my/addresses', address)
     return data
   },
-  async update(id, address) {
+  async update(id: string, address: Record<string, unknown>) {
     const { data } = await api.put(`/my/addresses/${id}`, address)
     return data
   },
-  async remove(id) {
+  async remove(id: string) {
     await api.delete(`/my/addresses/${id}`)
   },
-  async setDefault(id) {
+  async setDefault(id: string) {
     const { data } = await api.patch(`/my/addresses/${id}/default`)
     return data
   },
@@ -250,58 +266,63 @@ export const addressesService = {
 
 // TODO(fase-6): conectar cuando el backend exponga /admin/orders
 export const adminOrderService = {
-  async getAll(params = {}) {
+  async getAll(params: Record<string, unknown> = {}) {
     const { data } = await api.get('/admin/orders', { params })
-    return data // [{ id, number, date, customer, total, status, paymentStatus, trackingNumber }]
+    return data
   },
-  async getById(id) {
+  async getById(id: string) {
     const { data } = await api.get(`/admin/orders/${id}`)
     return data
   },
-  async updateStatus(id, status, trackingNumber = null) {
+  async updateStatus(id: string, status: string, trackingNumber: string | null = null) {
     const { data } = await api.put(`/admin/orders/${id}/status`, { status, trackingNumber })
     return data
   },
 }
 
-// TODO(fase-5): conectar cuando el backend exponga /my/orders
+// TODO(back): el endpoint GET /orders no filtra por customerId todavía.
+// Agregar filtro en GetAllOrdersQuery del back cuando esté listo.
 export const myOrdersService = {
-  async getOrders() {
-    const { data } = await api.get('/my/orders')
-    return data // [{ id, number, date, status, total, items }]
+  async getOrders(customerId?: string) {
+    const params = customerId ? { customerId } : {}
+    const { data } = await api.get('/orders', { params })
+    return data
   },
 }
 
 // TODO(fase-6): conectar cuando el backend exponga /admin/config
 export const adminConfigService = {
-  // Categorías
   async getCategories() { const { data } = await api.get('/admin/categories'); return data },
-  async createCategory(payload) { const { data } = await api.post('/admin/categories', payload); return data },
-  async updateCategory(id, payload) { const { data } = await api.put(`/admin/categories/${id}`, payload); return data },
-  async deleteCategory(id) { await api.delete(`/admin/categories/${id}`) },
+  async createCategory(payload: Record<string, unknown>) { const { data } = await api.post('/admin/categories', payload); return data },
+  async updateCategory(id: string, payload: Record<string, unknown>) { const { data } = await api.put(`/admin/categories/${id}`, payload); return data },
+  async deleteCategory(id: string) { await api.delete(`/admin/categories/${id}`) },
 
-  // Promociones
   async getPromotions() { const { data } = await api.get('/admin/promotions'); return data },
-  async createPromotion(payload) { const { data } = await api.post('/admin/promotions', payload); return data },
-  async updatePromotion(id, payload) { const { data } = await api.put(`/admin/promotions/${id}`, payload); return data },
-  async deletePromotion(id) { await api.delete(`/admin/promotions/${id}`) },
+  async createPromotion(payload: Record<string, unknown>) { const { data } = await api.post('/admin/promotions', payload); return data },
+  async updatePromotion(id: string, payload: Record<string, unknown>) { const { data } = await api.put(`/admin/promotions/${id}`, payload); return data },
+  async deletePromotion(id: string) { await api.delete(`/admin/promotions/${id}`) },
 
-  // Zonas de envío
   async getShippingZones() { const { data } = await api.get('/admin/shipping-zones'); return data },
-  async createShippingZone(payload) { const { data } = await api.post('/admin/shipping-zones', payload); return data },
-  async updateShippingZone(id, payload) { const { data } = await api.put(`/admin/shipping-zones/${id}`, payload); return data },
-  async deleteShippingZone(id) { await api.delete(`/admin/shipping-zones/${id}`) },
+  async createShippingZone(payload: Record<string, unknown>) { const { data } = await api.post('/admin/shipping-zones', payload); return data },
+  async updateShippingZone(id: string, payload: Record<string, unknown>) { const { data } = await api.put(`/admin/shipping-zones/${id}`, payload); return data },
+  async deleteShippingZone(id: string) { await api.delete(`/admin/shipping-zones/${id}`) },
 
-  // Puntos de retiro
   async getPickupPoints() { const { data } = await api.get('/admin/pickup-points'); return data },
-  async updatePickupPoint(id, payload) { const { data } = await api.put(`/admin/pickup-points/${id}`, payload); return data },
+  async updatePickupPoint(id: string, payload: Record<string, unknown>) { const { data } = await api.put(`/admin/pickup-points/${id}`, payload); return data },
 }
 
-// TODO(fase-6): conectar cuando el backend exponga /admin/dashboard
-export const adminDashboardService = {
-  async getSummary() {
-    const { data } = await api.get('/admin/dashboard')
-    return data // { ordersToday, revenueToday, pendingOrders, lowStockCount, outOfStockCount, recentOrders }
+export const tenantService = {
+  async getBySlug(slug: string): Promise<TenantDetail> {
+    const { data } = await api.get<TenantDetail>(`/tenants/${slug}`)
+    return data
+  },
+  async getByDomain(hostname: string): Promise<TenantDetail> {
+    const { data } = await api.get<TenantDetail>('/tenants/by-domain', { params: { hostname } })
+    return data
+  },
+  async getMe(): Promise<TenantDetail> {
+    const { data } = await api.get<TenantDetail>('/tenants/me')
+    return data
   },
 }
 

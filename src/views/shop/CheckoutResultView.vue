@@ -1,85 +1,129 @@
 <template>
   <div class="result-page">
     <div class="result-container">
-      <!-- Ícono de éxito -->
-      <div class="success-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"/>
-          <path d="m9 12 2 2 4-4"/>
-        </svg>
+
+      <!-- Loading -->
+      <div v-if="loading" class="state-loading">
+        <span class="spinner"></span>
+        <p>Cargando tu pedido...</p>
       </div>
 
-      <h1 class="result-title">¡Pedido confirmado!</h1>
-      <p class="result-subtitle">
-        Tu pedido <strong>#{{ order.number }}</strong> fue registrado correctamente.
-        Te avisaremos cuando esté listo para enviar.
-      </p>
+      <!-- Error -->
+      <div v-else-if="error" class="state-error">
+        <p>{{ error }}</p>
+        <RouterLink :to="homeLink" class="btn-primary">Volver al inicio</RouterLink>
+      </div>
 
-      <!-- Resumen de productos -->
-      <section class="result-section">
-        <h2 class="section-title">Productos</h2>
-        <div v-for="item in order.items" :key="item.productId" class="order-item">
-          <span class="item-qty">{{ item.quantity }}×</span>
-          <span class="item-name">{{ item.name }}</span>
-          <span class="item-price">{{ formatPrice(item.unitPrice * item.quantity) }}</span>
+      <!-- Pago rechazado / pendiente -->
+      <template v-else-if="paymentStatus && paymentStatus !== 'approved'">
+        <div class="failed-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+          </svg>
         </div>
-      </section>
-
-      <!-- Envío -->
-      <section class="result-section">
-        <h2 class="section-title">Envío</h2>
-        <p class="detail">{{ order.shippingAddress?.street }}, {{ order.shippingAddress?.city }}, {{ order.shippingAddress?.province }}</p>
-        <p class="detail">
-          {{ order.shippingOption?.name }}
-          <span v-if="order.shippingOption?.price === 0" class="free-badge">· Gratis</span>
-          <span v-else-if="order.shippingOption?.price"> · {{ formatPrice(order.shippingOption.price) }}</span>
+        <h1 class="result-title">{{ paymentStatus === 'pending' ? 'Pago pendiente' : 'Pago rechazado' }}</h1>
+        <p class="result-subtitle">
+          {{ paymentStatus === 'pending'
+            ? 'Tu pago está siendo procesado. Te avisaremos cuando se confirme.'
+            : 'Hubo un problema con el pago. Podés intentarlo de nuevo.' }}
         </p>
-        <p v-if="order.shippingOption?.estimatedDays" class="detail muted">
-          Tiempo estimado: {{ order.shippingOption.estimatedDays }} días hábiles
-        </p>
-      </section>
-
-      <!-- Totales -->
-      <div class="totals">
-        <div class="total-row grand">
-          <span>Total pagado</span>
-          <span>{{ formatPrice(order.total) }}</span>
+        <div class="result-actions">
+          <RouterLink :to="homeLink" class="btn-primary">Volver a la tienda</RouterLink>
         </div>
-      </div>
+      </template>
 
-      <!-- Nota demo -->
-      <p v-if="isDemoMode" class="demo-note">
-        Modo demo — no se procesó ningún pago real.
-      </p>
+      <!-- Éxito -->
+      <template v-else-if="order">
+        <div class="success-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="m9 12 2 2 4-4"/>
+          </svg>
+        </div>
 
-      <!-- Acciones -->
-      <div class="result-actions">
-        <RouterLink to="/mi-cuenta/pedidos" class="btn-secondary">Ver mis pedidos</RouterLink>
-        <RouterLink to="/" class="btn-primary">Seguir comprando</RouterLink>
-      </div>
+        <h1 class="result-title">¡Pedido confirmado!</h1>
+        <p class="result-subtitle">
+          Tu pedido <strong>#{{ order.number }}</strong> fue registrado correctamente.
+          Te avisaremos cuando esté listo para enviar.
+        </p>
+
+        <section class="result-section">
+          <h2 class="section-title">Productos</h2>
+          <div v-for="item in order.items" :key="item.productId" class="order-item">
+            <span class="item-qty">{{ item.quantity }}×</span>
+            <span class="item-name">{{ item.name }}</span>
+            <span class="item-price">{{ formatPrice(item.unitPrice * item.quantity) }}</span>
+          </div>
+        </section>
+
+        <section class="result-section">
+          <h2 class="section-title">Envío</h2>
+          <p class="detail">{{ order.shippingAddress?.street }}, {{ order.shippingAddress?.city }}, {{ order.shippingAddress?.province }}</p>
+          <p class="detail">
+            {{ order.shippingOption?.name }}
+            <span v-if="order.shippingOption?.price === 0" class="free-badge">· Gratis</span>
+            <span v-else-if="order.shippingOption?.price"> · {{ formatPrice(order.shippingOption.price) }}</span>
+          </p>
+        </section>
+
+        <div class="totals">
+          <div class="total-row grand">
+            <span>Total pagado</span>
+            <span>{{ formatPrice(order.total) }}</span>
+          </div>
+        </div>
+
+        <div class="result-actions">
+          <RouterLink :to="myOrdersLink" class="btn-secondary">Ver mis pedidos</RouterLink>
+          <RouterLink :to="homeLink" class="btn-primary">Seguir comprando</RouterLink>
+        </div>
+      </template>
+
     </div>
   </div>
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { useDemoOrdersStore } from '@/stores/demoOrdersStore'
+import { ref, computed, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { orderService } from '@/services/api'
 import { useCheckoutStore } from '@/stores/checkoutStore'
-import { isDemoMode } from '@/config'
+import { useTenantStore } from '@/stores/tenantStore'
 
+const route         = useRoute()
 const router        = useRouter()
 const checkoutStore = useCheckoutStore()
-const demoStore     = useDemoOrdersStore()
+const tenantStore   = useTenantStore()
 
-const order = demoStore.lastOrder
+const loading       = ref(true)
+const error         = ref(null)
+const order         = ref(null)
+const paymentStatus = ref(null)
 
-onMounted(() => {
-  if (!order) {
-    router.replace('/')
+// MercadoPago redirige con: ?collection_status=approved&external_reference={orderId}
+const orderId  = route.query.external_reference
+const mpStatus = route.query.collection_status
+
+const homeLink     = computed(() => tenantStore.slug ? `/${tenantStore.slug}` : '/')
+const myOrdersLink = computed(() => tenantStore.slug ? `/${tenantStore.slug}/mis-pedidos` : '/mi-cuenta/pedidos')
+
+onMounted(async () => {
+  paymentStatus.value = mpStatus ?? null
+
+  if (!orderId) {
+    router.replace(homeLink.value)
     return
   }
-  checkoutStore.reset()
+
+  try {
+    order.value = await orderService.getById(orderId)
+    checkoutStore.reset()
+  } catch {
+    error.value = 'No pudimos encontrar tu pedido. Si el pago fue procesado, revisá tu email de confirmación.'
+  } finally {
+    loading.value = false
+  }
 })
 
 function formatPrice(n) {
@@ -109,17 +153,48 @@ function formatPrice(n) {
   gap: 1.25rem;
 }
 
-.success-icon {
+.state-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 2rem 0;
+  color: #6b7280;
+  font-size: .9rem;
+}
+.state-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 0;
+  text-align: center;
+  color: #6b7280;
+  font-size: .9rem;
+}
+
+.success-icon, .failed-icon {
   width: 56px;
   height: 56px;
-  background: #dcfce7;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0 auto .25rem;
 }
+.success-icon { background: #dcfce7; }
 .success-icon svg { width: 28px; height: 28px; color: #16a34a; }
+.failed-icon { background: #fee2e2; }
+.failed-icon svg { width: 28px; height: 28px; color: #dc2626; }
+
+.spinner {
+  width: 32px; height: 32px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #374151;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
 
 .result-title {
   font-size: 1.35rem;
@@ -171,7 +246,6 @@ function formatPrice(n) {
 .item-price { font-weight: 600; color: #111827; }
 
 .detail { font-size: .875rem; color: #374151; margin-bottom: .25rem; }
-.detail.muted { color: #9ca3af; }
 .free-badge { color: #16a34a; font-weight: 600; }
 
 .totals {
@@ -181,16 +255,6 @@ function formatPrice(n) {
 }
 .total-row { display: flex; justify-content: space-between; font-size: .875rem; color: #374151; }
 .total-row.grand { font-size: 1.05rem; font-weight: 700; color: #111827; }
-
-.demo-note {
-  font-size: .78rem;
-  color: #9ca3af;
-  text-align: center;
-  border: 1px dashed #e5e7eb;
-  border-radius: .5rem;
-  padding: .5rem .75rem;
-  margin: 0;
-}
 
 .result-actions {
   display: flex;

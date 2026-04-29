@@ -74,63 +74,20 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { myOrdersService } from '@/services/api'
-import { useDemoOrdersStore } from '@/stores/demoOrdersStore'
-import { isDemoMode } from '@/config'
+import { useAuthStore } from '@/stores/authStore'
 
-const USE_MOCK = isDemoMode
-const demoOrdersStore = isDemoMode ? useDemoOrdersStore() : null
+const authStore = useAuthStore()
 
 const loading = ref(true)
 const error   = ref(null)
 const orders  = ref([])
 
-const MOCK_ORDERS = [
-  {
-    id: 'ord-001',
-    number: '2024-001',
-    date: '2024-11-10T14:30:00Z',
-    status: 'delivered',
-    total: 35400,
-    items: [
-      { productId: 'p1', name: 'Remera Oversize', image: null, quantity: 2, unitPrice: 12500, variant: { Talle: 'M', Color: 'Negro' } },
-      { productId: 'p2', name: 'Jogger Deportivo', image: null, quantity: 1, unitPrice: 10400, variant: { Talle: 'L' } },
-    ],
-  },
-  {
-    id: 'ord-002',
-    number: '2024-002',
-    date: '2024-12-05T09:15:00Z',
-    status: 'shipped',
-    total: 18900,
-    items: [
-      { productId: 'p3', name: 'Buzo Canguro', image: null, quantity: 1, unitPrice: 18900, variant: { Talle: 'XL', Color: 'Gris' } },
-    ],
-  },
-  {
-    id: 'ord-003',
-    number: '2025-001',
-    date: '2025-01-20T17:45:00Z',
-    status: 'confirmed',
-    total: 8750,
-    items: [
-      { productId: 'p4', name: 'Calza Deportiva', image: null, quantity: 1, unitPrice: 8750, variant: { Talle: 'S' } },
-    ],
-  },
-]
-
 async function load() {
   loading.value = true
   error.value   = null
   try {
-    if (USE_MOCK) {
-      await new Promise(r => setTimeout(r, 500))
-      // Pedidos reales del demo (más recientes primero) + mock estáticos de ejemplo
-      const demoOrders = [...demoOrdersStore.orders].reverse()
-      orders.value = [...demoOrders, ...MOCK_ORDERS]
-    } else {
-      orders.value = await myOrdersService.getOrders()
-    }
-  } catch (err) {
+    orders.value = await myOrdersService.getOrders(authStore.user?.id)
+  } catch {
     error.value = 'No pudimos cargar tus pedidos. Intentá de nuevo.'
   } finally {
     loading.value = false
