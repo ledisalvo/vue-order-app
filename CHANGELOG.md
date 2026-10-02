@@ -27,10 +27,13 @@ Impacto directo en este front:
   (`GET/POST /api/public/{slug}/...`), sin cuenta de comprador — alineado con `StepCart`
   a `StepReview`, pero sin el paso de pago con MP al final.
 - El commit `43db162` ("fase 2+3 — TypeScript migration, onboarding, multi-tenant routing")
-  ya empezó a construir routing multi-tenant en este front, pero **quedó sin mergear** en
-  `develop` desde abril. Antes de retomar checkout, conviene rescatar y mergear ese trabajo.
-- **Todo el backend descripto arriba vive sin mergear** en la rama `fix/bugs-varios` de
-  `puestito-api` — no está ni en `main` ni en `develop` de ese repo tampoco.
+  **ya está en `develop`** (verificado 2026-10-02). Construyó routing multi-tenant,
+  onboarding y `tenantStore`, pero **contra el contrato anterior** del backend (incluye el
+  paso de conectar MercadoPago y el endpoint `/tenants/by-domain`), así que todavía hay que
+  realinearlo antes de conectar el checkout.
+- **El backend descripto arriba ya está en `develop` de `puestito-api`** (la rama
+  `fix/bugs-varios` fue mergeada; Fase 5, commit `d5b5649`, 14-ago-2026). `main` de ese repo
+  queda atrás por decisión hasta el primer release.
 
 Las secciones "Fase" de abajo no se reescriben — documentan lo que este front construyó y
 siguen siendo ciertas. Lo que cambia es contra qué backend real hay que conectar cada
@@ -136,8 +139,9 @@ siguen siendo ciertas. Lo que cambia es contra qué backend real hay que conecta
 - [ ] Reemplazo: **pantalla de confirmación + comprobante** post-checkout — consumir
       `GET /api/public/{slug}/orders/{orderId}/summary` (HTML) del backend real en vez del
       flujo de resultado de MP.
-- [ ] Retomar y mergear el trabajo de multi-tenant routing (`43db162`, sin mergear en
-      `develop`) antes de conectar el checkout al backend real.
+- [ ] El trabajo de multi-tenant routing (`43db162`) **ya está en `develop`**. Falta
+      realinearlo al contrato del MVP (sin paso de MercadoPago ni `/tenants/by-domain`)
+      antes de conectar el checkout al backend real.
 
 ### Fase 5 — Mi cuenta ✅
 
@@ -194,7 +198,7 @@ contra issues resueltos o features que ya no existen:
 | DB PostgreSQL | ✅ Resuelto | — |
 | Autenticación JWT | ✅ Resuelto | Conectar `authStore`/`api.js` a la API real (sacar `VITE_DEMO_MODE`) |
 | Paginación/filtros server-side | ✅ Resuelto (`GET /api/public/{slug}/products`) | Conectar `catalogService` |
-| Multi-tenancy por slug | ✅ Resuelto (`TenantResolutionMiddleware`) | Retomar/mergear `43db162` (multi-tenant routing), sin mergear en `develop` |
+| Multi-tenancy por slug | ✅ Resuelto (`TenantResolutionMiddleware`) | `43db162` (multi-tenant routing) ya está en `develop`; realinearlo al contrato del MVP (quitar `/tenants/by-domain`) |
 | Checkout de invitado | ✅ Resuelto (`POST /api/public/{slug}/orders`) | Conectar `checkoutService`, sacar el paso de MercadoPago |
 | Dashboard de pedidos + comprobante | ✅ Resuelto (`GET /api/orders/{id}/summary`) | Conectar `adminOrderService`/`adminDashboardService` |
 | Imágenes de producto (Cloudinary) | ✅ Resuelto | Conectar upload real en `AdminProductFormView` |
@@ -202,7 +206,6 @@ contra issues resueltos o features que ya no existen:
 | Custom domain | ❌ Retirado del scope del MVP | No aplica al MVP |
 | Plan Premium / billing | ❌ Retirado del scope del MVP | No aplica al MVP |
 
-> ⚠️ Todo el backend de esta tabla vive sin mergear en la rama `fix/bugs-varios` de
-> `puestito-api` (no está en `main` ni `develop` de ese repo). Confirmar con el estado real
-> de esa rama antes de asumir que un endpoint está disponible en el ambiente que se use para
-> conectar este front.
+> ✅ El backend de esta tabla está mergeado en `develop` de `puestito-api` (verificado
+> 2026-10-02; la rama `fix/bugs-varios` fue mergeada). `main` de ese repo queda atrás por
+> decisión hasta el primer release: para conectar este front, usar `develop` del API.
