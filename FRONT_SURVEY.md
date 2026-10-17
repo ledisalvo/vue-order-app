@@ -1,3 +1,5 @@
+> ⚠️ **Foto histórica, no es el estado actual.** Relevamiento del 2026-04-26 sobre `main`, que es lo que hoy despliega Vercel en producción y todavía tiene modo demo. En `develop` ya no existen el modo demo (eliminado en `43db162`) ni `demoOrdersStore`, y el front habla con el API real. Fuente vigente: [`puestito-docs`](https://github.com/ledisalvo/puestito-docs) (`MVP.md`). Aviso agregado el 2026-10-17; el resto del archivo no se modificó.
+
 # FRONT_SURVEY.md — Relevamiento técnico del frontend
 
 > Generado el 2026-04-26. Solo documenta lo encontrado — sin sugerencias de mejora.

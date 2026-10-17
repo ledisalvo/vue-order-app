@@ -11,7 +11,7 @@ Este changelog quedó desactualizado respecto al backend real (`puestito-api`, a
 `Generic-Ecommerce`). Mientras este front seguía planeando contra el repo viejo, el back
 recortó scope (Plan 01-02, GAP-ANALYSIS) y **eliminó MercadoPago, custom domain y planes
 Free/Premium por completo** — no los pospuso, los sacó del código. Ver
-`puestito-api/docs/puestito-sdd-producto.md` sección 0 y 11 para el detalle.
+`puestito-docs/docs/puestito-sdd-producto.md` sección 0 y 11 para el detalle.
 
 Impacto directo en este front:
 
@@ -22,7 +22,7 @@ Impacto directo en este front:
 - Los issues `Generic-Ecommerce#26/27/28` referenciados abajo pertenecen al repo viejo
   (renombrado a `puestito-api`) y **#26 (JWT) y #28 (paginación server-side) ya están
   resueltos** del lado del backend — no siguen bloqueados, lo que falta es conectar este
-  front a la API real (sigue en `VITE_DEMO_MODE=true`).
+  front a la API real (en `develop` ya no hay modo demo: `43db162` lo eliminó, verificado 2026-10-17).
 - El backend expone hoy un modelo de **tienda pública por slug + checkout de invitado**
   (`GET/POST /api/public/{slug}/...`), sin cuenta de comprador — alineado con `StepCart`
   a `StepReview`, pero sin el paso de pago con MP al final.
@@ -72,7 +72,7 @@ siguen siendo ciertas. Lo que cambia es contra qué backend real hay que conecta
 
 #### Blocked
 - ~~Integración real con backend JWT → bloqueado por [Generic-Ecommerce#26](https://github.com/ledisalvo/Generic-Ecommerce/issues/26)~~
-  **Resuelto del lado del backend** (`puestito-api`, autenticación JWT completa). Falta conectar este front (sigue en `VITE_DEMO_MODE=true`).
+  **Resuelto del lado del backend** (`puestito-api`, autenticación JWT completa). Falta alinear este front al contrato del MVP (en `develop` ya habla con el API real; no hay modo demo desde `43db162`, verificado 2026-10-17).
 
 ### Fase 3 — Catálogo y detalle conectados a API ✅
 
@@ -134,7 +134,7 @@ siguen siendo ciertas. Lo que cambia es contra qué backend real hay que conecta
 - [ ] ~~**MercadoPago Checkout Pro** + pantalla de resultado (approved/pending/failure) — issue #13~~
       **Cancelado** (Agosto 2026) — MercadoPago está fuera de scope del MVP en `puestito-api`
       (Plan 01-02). Queda diferido a un eventual plan Premium, ver
-      `puestito-api/docs/puestito-sdd-producto.md` sección 11. No construir contra esto hasta
+      `puestito-docs/docs/puestito-sdd-producto.md` sección 11. No construir contra esto hasta
       que se reintroduzca explícitamente.
 - [ ] Reemplazo: **pantalla de confirmación + comprobante** post-checkout — consumir
       `GET /api/public/{slug}/orders/{orderId}/summary` (HTML) del backend real en vez del
@@ -196,7 +196,7 @@ contra issues resueltos o features que ya no existen:
 | Ítem | Estado en `puestito-api` | Qué falta del lado de este front |
 |---|---|---|
 | DB PostgreSQL | ✅ Resuelto | — |
-| Autenticación JWT | ✅ Resuelto | Conectar `authStore`/`api.js` a la API real (sacar `VITE_DEMO_MODE`) |
+| Autenticación JWT | ✅ Resuelto | Alinear `authStore`/`api.ts` al contrato del API (el front de `develop` ya no tiene modo demo) |
 | Paginación/filtros server-side | ✅ Resuelto (`GET /api/public/{slug}/products`) | Conectar `catalogService` |
 | Multi-tenancy por slug | ✅ Resuelto (`TenantResolutionMiddleware`) | `43db162` (multi-tenant routing) ya está en `develop`; realinearlo al contrato del MVP (quitar `/tenants/by-domain`) |
 | Checkout de invitado | ✅ Resuelto (`POST /api/public/{slug}/orders`) | Conectar `checkoutService`, sacar el paso de MercadoPago |
